@@ -1,0 +1,13 @@
+// The protocol buffer format for serialized bulletins 
+// Version: 0.1.2 
+
+// The package output for go is wirebulletin
+
+option java_outer_classname = "WireBulletinProtos";
+
+message WireBulletin {
+    optional string board       = 1;
+    required string message     = 2;
+    optional int64 timestamp    = 3; // Seconds since 00:00:00 Jan 1, 1970
+                                     // Otherwise known as 'Unix' time.
+}
