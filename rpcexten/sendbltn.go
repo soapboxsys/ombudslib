@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/conformal/btcjson"
+	"github.com/btcsuite/btcjson"
 )
 
 type SendBulletinCmd struct {
