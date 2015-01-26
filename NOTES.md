@@ -14,7 +14,7 @@ In rpcserver.go L:40
 
 ```go
 // TODO NOTICE import package derp for effect
-_ "github.com/soapboxsys/ombudslib/walletexten"
+_ "github.com/soapboxsys/ombudslib/rpcexten"
 ```
 
 
@@ -30,7 +30,7 @@ btcctl changes
 In btcctl.go L:13
 ```go
     // TODO NOTICE
-    _"github.com/soapboxsys/ombudslib/walletexten"
+    _"github.com/soapboxsys/ombudslib/rpcexten"
 ```
 
 In btcctl.go L:115
@@ -45,7 +45,7 @@ In btcctl.go L:223
 // TODO NOTICE
 // makes a sendBulletin cmd from the provided parameters
 func makeSendBulletin(args []interface{}) (btcjson.Cmd, error) {
-        return walletexten.NewSendBulletinCmd("btcctl", args[0].(string), args[1].(string), args[2].(string)), nil
+        return rpcexten.NewSendBulletinCmd("btcctl", args[0].(string), args[1].(string), args[2].(string)), nil
 }
 ```
 

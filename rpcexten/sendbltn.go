@@ -1,4 +1,4 @@
-package walletexten
+package rpcexten
 
 import (
 	"encoding/json"
