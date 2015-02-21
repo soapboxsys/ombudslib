@@ -8,10 +8,10 @@ import (
 
 	"code.google.com/p/goprotobuf/proto"
 	"github.com/NSkelsey/protocol/ahimsa/wirebulletin"
-	"github.com/btcsuite/btcnet"
-	"github.com/btcsuite/btcscript"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/txscript"
+	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwire"
 )
 
 const (
@@ -33,8 +33,8 @@ var (
 type Author string
 
 type Bulletin struct {
-	Txid      *btcwire.ShaHash
-	Block     *btcwire.ShaHash
+	Txid      *wire.ShaHash
+	Block     *wire.ShaHash
 	Author    string
 	Board     string
 	Message   string
@@ -43,14 +43,14 @@ type Bulletin struct {
 
 // Munges the pushed data of TxOuts into a single universal slice that we can
 // use as a whole message.
-func extractData(txOuts []*btcwire.TxOut) ([]byte, error) {
+func extractData(txOuts []*wire.TxOut) ([]byte, error) {
 
 	alldata := make([]byte, 0)
 
 	first := true
 	for _, txout := range txOuts {
 
-		pushMatrix, err := btcscript.PushedData(txout.PkScript)
+		pushMatrix, err := txscript.PushedData(txout.PkScript)
 		if err != nil {
 			return alldata, err
 		}
@@ -88,7 +88,7 @@ func extractData(txOuts []*btcwire.TxOut) ([]byte, error) {
 // by unpacking txOuts that are considered data. It ignores extra junk behind the protobuffer.
 // NewBulletin also asserts aspects of valid bulletins by throwing errors when msg len
 // is zero or board len is greater than MaxBoardLen.
-func NewBulletin(tx *btcwire.MsgTx, blkhash *btcwire.ShaHash, net *btcnet.Params) (*Bulletin, error) {
+func NewBulletin(tx *wire.MsgTx, blkhash *wire.ShaHash, net *chaincfg.Params) (*Bulletin, error) {
 	wireBltn := &wirebulletin.WireBulletin{}
 
 	author, err := getAuthor(tx, net)
@@ -167,11 +167,11 @@ func NewBulletinFromStr(author string, board string, msg string) (*Bulletin, err
 }
 
 // Converts a bulletin into public key scripts for encoding
-func (bltn *Bulletin) TxOuts(toBurn int64, net *btcnet.Params) ([]*btcwire.TxOut, error) {
+func (bltn *Bulletin) TxOuts(toBurn int64, net *chaincfg.Params) ([]*wire.TxOut, error) {
 
 	rawbytes, err := bltn.Bytes()
 	if err != nil {
-		return []*btcwire.TxOut{}, err
+		return []*wire.TxOut{}, err
 	}
 
 	numcuts, _ := bltn.NumOuts()
@@ -187,18 +187,18 @@ func (bltn *Bulletin) TxOuts(toBurn int64, net *btcnet.Params) ([]*btcwire.TxOut
 	}
 
 	// Convert raw data into txouts
-	txouts := make([]*btcwire.TxOut, 0)
+	txouts := make([]*wire.TxOut, 0)
 	for _, cut := range cuts {
 
 		fakeaddr, err := btcutil.NewAddressPubKeyHash(cut, net)
 		if err != nil {
-			return []*btcwire.TxOut{}, err
+			return []*wire.TxOut{}, err
 		}
-		pkscript, err := btcscript.PayToAddrScript(fakeaddr)
+		pkscript, err := txscript.PayToAddrScript(fakeaddr)
 		if err != nil {
-			return []*btcwire.TxOut{}, err
+			return []*wire.TxOut{}, err
 		}
-		txout := &btcwire.TxOut{
+		txout := &wire.TxOut{
 			PkScript: pkscript,
 			Value:    toBurn,
 		}
@@ -209,13 +209,13 @@ func (bltn *Bulletin) TxOuts(toBurn int64, net *btcnet.Params) ([]*btcwire.TxOut
 }
 
 // Returns the "Author" who signed the first txin of the transaction
-func getAuthor(tx *btcwire.MsgTx, net *btcnet.Params) (string, error) {
+func getAuthor(tx *wire.MsgTx, net *chaincfg.Params) (string, error) {
 	sigScript := tx.TxIn[0].SignatureScript
 
-	dummyTx := btcwire.NewMsgTx()
+	dummyTx := wire.NewMsgTx()
 
 	// Setup a script executor to parse the raw bytes of the signature script.
-	script, err := btcscript.NewScript(sigScript, make([]byte, 0), 0, dummyTx, 0)
+	script, err := txscript.NewScript(sigScript, make([]byte, 0), 0, dummyTx, 0)
 	if err != nil {
 		return "", err
 	}

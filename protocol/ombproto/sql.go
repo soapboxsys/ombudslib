@@ -1,4 +1,4 @@
-package ahimsa
+package ombproto
 
 import (
 	"bufio"

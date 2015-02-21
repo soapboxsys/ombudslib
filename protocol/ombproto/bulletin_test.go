@@ -1,4 +1,4 @@
-package ahimsa_test
+package ombproto_test
 
 import (
 	"bytes"
