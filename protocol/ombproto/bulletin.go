@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"code.google.com/p/goprotobuf/proto"
-	"github.com/NSkelsey/protocol/ahimsa/wirebulletin"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
+	"github.com/soapboxsys/ombudslib/protocol/ombproto/wirebulletin"
 )
 
 const (
