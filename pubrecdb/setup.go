@@ -189,7 +189,7 @@ func SetupTestDB() (*PublicRecord, error) {
 	if testEnvPath != "" {
 		dbpath = testEnvPath
 	} else {
-		dbpath = os.Getenv("GOPATH") + "/src/github.com/NSkelsey/pubrecdb/test.db"
+		dbpath = os.Getenv("GOPATH") + "/src/github.com/soapboxsys/ombudslib/pubrecdb/test.db"
 		dbpath = filepath.Clean(dbpath)
 	}
 	var err error
