@@ -53,7 +53,7 @@ func TestJsonAuthor(t *testing.T) {
 func TestWholeBoard(t *testing.T) {
 	db, _ := SetupTestDB()
 
-	board := "ombproto-dev"
+	board := "ahimsa-dev"
 
 	wholeBoard, err := db.GetWholeBoard(board)
 

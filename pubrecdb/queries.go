@@ -3,7 +3,6 @@ package pubrecdb
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -199,9 +198,7 @@ func (db *PublicRecord) GetJsonBlock(hash string) (*ombjson.JsonBlkResp, error) 
 
 	hash = strings.ToLower(hash)
 
-	log.Println("Block start", hash)
-	row := db.selectBlockHead.QueryRow(hash)
-	blkHead, err := scanJsonBlk(row)
+	blkHead, err := db.GetJsonBlockHead(hash)
 	if err != nil {
 		return nil, err
 	}
@@ -222,6 +219,19 @@ func (db *PublicRecord) GetJsonBlock(hash string) (*ombjson.JsonBlkResp, error) 
 		Bulletins: bltns,
 	}
 	return blkResp, nil
+}
+
+func (db *PublicRecord) GetJsonBlockHead(hash string) (*ombjson.JsonBlkHead, error) {
+
+	hash = strings.ToLower(hash)
+
+	row := db.selectBlockHead.QueryRow(hash)
+	blkHead, err := scanJsonBlk(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return blkHead, nil
 }
 
 func (db *PublicRecord) GetJsonBlacklist() ([]*ombjson.BannedBltn, error) {
