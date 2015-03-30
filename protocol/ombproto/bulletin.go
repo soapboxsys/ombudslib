@@ -107,10 +107,8 @@ func NewBulletin(tx *wire.MsgTx, blkhash *wire.ShaHash, net *chaincfg.Params) (*
 		}
 
 		err = proto.Unmarshal(bytes, wireBltn)
-		if err != nil {
-			continue
-		} else {
-			// No errors, we found a good decode
+		if err == nil {
+			// No errors. Therefore we found a good decode.
 			break
 		}
 	}
