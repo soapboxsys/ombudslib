@@ -5,10 +5,17 @@ import (
 	"fmt"
 
 	"github.com/btcsuite/btcd/btcjson"
+	newjson "github.com/btcsuite/btcd/btcjson/v2/btcjson"
 )
 
 type SendBulletinCmd struct {
 	id      interface{}
+	Address string
+	Board   string
+	Message string
+}
+
+type SendBulletinCmdv2 struct {
 	Address string
 	Board   string
 	Message string
@@ -114,44 +121,13 @@ func replyParser(rawJ json.RawMessage) (interface{}, error) {
 func registerJsonCmd() {
 	helpStr := "sendbulletin <address> <board> <message>"
 	btcjson.RegisterCustomCmd("sendbulletin", rawCmdParser, replyParser, helpStr)
+	newjson.MustRegisterCmd("sendbulletin", (*SendBulletinCmdv2)(nil), newjson.UFWalletOnly)
 }
 
 func init() {
-	fmt.Println("blah")
 	registerJsonCmd()
+	fmt.Println("Registered sendbltn commands")
 }
-
-/*func pain() {
-	addr, board, content := "thisisanaddr", "ahimsa-dev", "Derp derp derp"
-	cmd := NewSendBulletinCmd(float64(1), addr, board, content)
-
-	helpStr := "sendbulletin <address> <board> <message>"
-
-	btcjson.RegisterCustomCmd("sendbulletin", rawCmdParser, replyParser, helpStr)
-
-	msg, err := json.Marshal(cmd)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cmd2, err := btcjson.ParseMarshaledCmd(msg)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%v\n", cmd2)
-
-	resp := []byte(`{"id":1, "result":"1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v", "error":null}`)
-	_, err = btcjson.ReadResultCmd("getnewaddress", resp)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("getnew worked")
-	reply, err := btcjson.ReadResultCmd("sendbulletin", resp)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%v\n", reply)
-}*/
 
 // The minimum dust value for a PayToPubKey tx accepted by the network
 func DustAmnt() int64 {
