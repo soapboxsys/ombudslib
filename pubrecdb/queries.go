@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/soapboxsys/ombudslib/ombjson"
+	"github.com/soapboxsys/ombudslib/protocol/ombproto"
 
 	_ "code.google.com/p/go-sqlite/go1/sqlite3"
 )
@@ -123,9 +124,10 @@ var (
 
 	// Used by LatestBlkAndBltn
 	selectDBStatusSql string = `
-		SELECT l_blk.timestamp, l_bltn.timestamp
+		SELECT l_blk.timestamp, l_bltn.timestamp, height
 		FROM (SELECT max(blocks.timestamp) AS timestamp FROM blocks) as l_blk,
-			 (SELECT max(bulletins.timestamp) AS timestamp FROM bulletins) as l_bltn
+			 (SELECT max(bulletins.timestamp) AS timestamp FROM bulletins) as l_bltn,
+			 (SELECT max(blocks.height) as height FROM blocks)
 	`
 
 	// Used by GetAllAuthors
@@ -387,18 +389,25 @@ func (db *PublicRecord) GetBlocksByDay(day time.Time) ([]*ombjson.JsonBlkHead, e
 // reported timesetamps. This is entirely gameable by someone who plays
 // with their bltn's timestamp, but for now it is a good hueristic to see
 // if the db is actively getting written to.
-func (db *PublicRecord) LatestBlkAndBltn() (int64, int64, error) {
+func (db *PublicRecord) GetDBStatus() (*ombjson.Status, error) {
 
-	var latestBlk, latestBltn int64
+	var latestBlk, latestBltn, height int64
 
 	row := db.selectDBStatus.QueryRow()
 
-	err := row.Scan(&latestBlk, &latestBltn)
+	err := row.Scan(&latestBlk, &latestBltn, &height)
 	if err != nil {
-		return -1, -1, err
+		return nil, err
 	}
 
-	return latestBlk, latestBltn, nil
+	status := &ombjson.Status{
+		Version:    ombproto.Version,
+		LatestBlk:  latestBlk,
+		LatestBltn: latestBltn,
+		BlkCount:   uint64(height),
+	}
+
+	return status, nil
 }
 
 func (db *PublicRecord) GetAllAuthors() ([]*ombjson.AuthorSummary, error) {

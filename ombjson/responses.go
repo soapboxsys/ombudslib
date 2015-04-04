@@ -49,6 +49,7 @@ type Status struct {
 	AppStart   int64  `json:"appStart"`
 	LatestBlk  int64  `json:"latestBlock"`
 	LatestBltn int64  `json:"latestBltn"`
+	BlkCount   uint64 `json:"blkCount"`
 }
 
 // Holds summary information about a given board
