@@ -15,9 +15,13 @@ import (
 var (
 	ErrBltnCensored error = errors.New("Bulletin is withheld for some reason")
 
+	txidSql string = `
+		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blocks.height, blacklist.reason
+	`
+
 	// Used by GetJsonBltn
-	selectTxidSql string = `
-		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
+	selectTxidSql string = txidSql +
+		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
 		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
 		WHERE bulletins.txid = $1
@@ -28,8 +32,8 @@ var (
 		FROM blocks LEFT JOIN bulletins ON blocks.hash = bulletins.block
 		WHERE blocks.hash = $1
 	`
-	selectBlockBltnsSql string = `
-		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
+	selectBlockBltnsSql string = txidSql +
+		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
 		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
 		WHERE blocks.hash = $1
@@ -44,8 +48,8 @@ var (
 	`
 
 	// Used by GetJsonAuthor
-	selectAuthorBltnsSql string = `
-		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
+	selectAuthorBltnsSql string = txidSql +
+		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
 		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
 		WHERE author = $1
@@ -71,8 +75,8 @@ var (
 	`
 
 	// Used by GetWholeBoard
-	selectBoardBltnsSql string = `
-		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
+	selectBoardBltnsSql string = txidSql +
+		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
 		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
 		WHERE board = $1
@@ -88,8 +92,8 @@ var (
 	`
 
 	// Used by GetRecentBltns
-	selectRecentConfSql string = `
-		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blacklist.reason
+	selectRecentConfSql string = txidSql +
+		`
 		FROM bulletins, (
 			SELECT max(blocks.height) AS height FROM blocks	
 		) AS tip		
@@ -101,7 +105,7 @@ var (
 
 	// Used by GetUnconfirmed
 	selectUnconfirmedSql string = `
-		SELECT bulletins.txid, author, board, message, bulletins.timestamp, NULL, NULL, blacklist.reason
+		SELECT bulletins.txid, author, board, message, bulletins.timestamp, NULL, NULL, NULL, blacklist.reason
 		FROM bulletins
 		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
 		WHERE block IS NULL

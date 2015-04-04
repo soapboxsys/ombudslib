@@ -10,6 +10,7 @@ type JsonBltn struct {
 	Message      string `json:"msg"`
 	Timestamp    int64  `json:"timestamp,omitempty"`
 	Block        string `json:"blk,omitempty"`
+	BlkHeight    uint64 `json:"blkHeight,omitempty"` // NOTE This field may leave us
 	BlkTimestamp int64  `json:"blkTimestamp,omitempty"`
 	BannedReason string `json:"bannedReason,omitempty"`
 }

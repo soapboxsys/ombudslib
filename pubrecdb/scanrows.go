@@ -14,10 +14,10 @@ type scannable interface {
 func scanJsonBltn(cursor scannable, withhold bool) (*ombjson.JsonBltn, error) {
 
 	var txid, author, msg string
-	var board, blockH, bannedReason sql.NullString
-	var blkTs, bltnTs sql.NullInt64
+	var board, blkHash, bannedReason sql.NullString
+	var blkTs, bltnTs, blkHeight sql.NullInt64
 
-	err := cursor.Scan(&txid, &author, &board, &msg, &bltnTs, &blockH, &blkTs, &bannedReason)
+	err := cursor.Scan(&txid, &author, &board, &msg, &bltnTs, &blkHash, &blkTs, &blkHeight, &bannedReason)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +41,13 @@ func scanJsonBltn(cursor scannable, withhold bool) (*ombjson.JsonBltn, error) {
 	}
 
 	// If the response contained a block, fill the optional params
-	if blockH.Valid {
-		bltn.Block = blockH.String
+	if blkHash.Valid {
+		bltn.Block = blkHash.String
 		bltn.BlkTimestamp = blkTs.Int64
+	}
+
+	if blkHeight.Valid {
+		bltn.BlkHeight = uint64(blkHeight.Int64)
 	}
 
 	// If the bulletin was banned and withold is flagged then throw ErrBltnCensored
