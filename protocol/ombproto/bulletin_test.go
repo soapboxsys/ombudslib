@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/NSkelsey/protocol/ahimsa"
-
 	"code.google.com/p/goprotobuf/proto"
 )
 
@@ -13,7 +11,7 @@ func TestBulletinCreate(t *testing.T) {
 	topic := "King Arthur Arrives in Camelot"
 	msg := "What knight live in that castle over there?"
 
-	bltn, err := ahimsa.NewBulletinFromStr("nick", topic, msg)
+	bltn, err := ombproto.NewBulletinFromStr("nick", topic, msg)
 	if err != nil {
 		t.Errorf("New failed with: %v", err)
 		return
@@ -30,8 +28,8 @@ func TestWireCreate(t *testing.T) {
 	topic := "King Arthur Arrives in Camelot"
 	msg := "What knight live in that castle over there?"
 
-	wireb := &ahimsa.WireBulletin{
-		Version: proto.Uint32(ahimsa.ProtocolVersion),
+	wireb := &ombproto.WireBulletin{
+		Version: proto.Uint32(ombproto.ProtocolVersion),
 		Topic:   proto.String(topic),
 		Message: proto.String(msg),
 	}
