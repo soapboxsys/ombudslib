@@ -126,7 +126,7 @@ func registerJsonCmd() {
 
 func init() {
 	registerJsonCmd()
-	fmt.Println("Registered sendbltn commands")
+	//fmt.Println("Registered sendbltn commands")
 }
 
 // The minimum dust value for a PayToPubKey tx accepted by the network
