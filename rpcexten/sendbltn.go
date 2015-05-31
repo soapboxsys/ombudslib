@@ -8,6 +8,18 @@ import (
 	newjson "github.com/btcsuite/btcd/btcjson/v2/btcjson"
 )
 
+var (
+	sendbltnMeth    = "sendbulletin"
+	composebltnMeth = "composebulletin"
+)
+
+type BulletinCmd interface {
+	GetAddress() string
+	GetMessage() string
+	GetBoard() string
+}
+
+// NOTE any changes to the sendbulletin api must be reflected in compose as well.
 type SendBulletinCmd struct {
 	id      interface{}
 	Address string
@@ -15,6 +27,7 @@ type SendBulletinCmd struct {
 	Message string
 }
 
+// This was added to handle any interfaces that were switched in v0.10.0
 type SendBulletinCmdv2 struct {
 	Address string
 	Board   string
@@ -22,7 +35,6 @@ type SendBulletinCmdv2 struct {
 }
 
 func NewSendBulletinCmd(id interface{}, address, board, message string) *SendBulletinCmd {
-
 	return &SendBulletinCmd{
 		id:      id,
 		Address: address,
@@ -31,12 +43,24 @@ func NewSendBulletinCmd(id interface{}, address, board, message string) *SendBul
 	}
 }
 
+func (cmd SendBulletinCmd) GetAddress() string {
+	return cmd.Address
+}
+
+func (cmd SendBulletinCmd) GetBoard() string {
+	return cmd.Board
+}
+
+func (cmd SendBulletinCmd) GetMessage() string {
+	return cmd.Message
+}
+
 func (cmd SendBulletinCmd) Id() interface{} {
 	return cmd.id
 }
 
 func (cmd SendBulletinCmd) Method() string {
-	return "sendbulletin"
+	return sendbltnMeth
 }
 
 // MarshalJSON returns the JSON encoding of cmd.  Part of the Cmd interface.
@@ -70,12 +94,12 @@ func (cmd SendBulletinCmd) UnmarshalJSON(b []byte) error {
 	}
 
 	var board string
-	if err := json.Unmarshal(r.Params[0], &address); err != nil {
+	if err := json.Unmarshal(r.Params[1], &board); err != nil {
 		return fmt.Errorf("second parameter 'board' must be a string: %v", err)
 	}
 
 	var message string
-	if err := json.Unmarshal(r.Params[0], &address); err != nil {
+	if err := json.Unmarshal(r.Params[2], &message); err != nil {
 		return fmt.Errorf("third parameter 'board' must be a string: %v", err)
 	}
 
@@ -85,6 +109,96 @@ func (cmd SendBulletinCmd) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type ComposeBulletinCmd struct {
+	id      interface{}
+	Address string
+	Board   string
+	Message string
+}
+
+type ComposeBulletinCmdv2 struct {
+	Address string
+	Board   string
+	Message string
+}
+
+func NewComposeBulletinCmd(id interface{}, address, board, message string) *ComposeBulletinCmd {
+	return &ComposeBulletinCmd{
+		id:      id,
+		Address: address,
+		Message: message,
+		Board:   board,
+	}
+}
+
+func (cmd ComposeBulletinCmd) GetAddress() string {
+	return cmd.Address
+}
+
+func (cmd ComposeBulletinCmd) GetBoard() string {
+	return cmd.Board
+}
+
+func (cmd ComposeBulletinCmd) GetMessage() string {
+	return cmd.Message
+}
+
+func (cmd ComposeBulletinCmd) Id() interface{} {
+	return cmd.id
+}
+
+func (cmd ComposeBulletinCmd) Method() string {
+	return sendbltnMeth
+}
+
+// MarshalJSON returns the JSON encoding of cmd.  Part of the Cmd interface.
+func (cmd ComposeBulletinCmd) MarshalJSON() ([]byte, error) {
+	params := []interface{}{
+		cmd.Address,
+		cmd.Board,
+		cmd.Message,
+	}
+
+	// Fill and marshal a RawCmd.
+	raw, err := btcjson.NewRawCmd(cmd.id, cmd.Method(), params)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(raw)
+}
+
+func (cmd ComposeBulletinCmd) UnmarshalJSON(b []byte) error {
+	var r btcjson.RawCmd
+	if err := json.Unmarshal(b, &r); err != nil {
+		return err
+	}
+	if len(r.Params) != 3 {
+		return btcjson.ErrWrongNumberOfParams
+	}
+
+	var address string
+	if err := json.Unmarshal(r.Params[0], &address); err != nil {
+		return fmt.Errorf("first parameter 'address' must be a string: %v", err)
+	}
+
+	var board string
+	if err := json.Unmarshal(r.Params[1], &board); err != nil {
+		return fmt.Errorf("second parameter 'board' must be a string: %v", err)
+	}
+
+	var message string
+	if err := json.Unmarshal(r.Params[2], &message); err != nil {
+		return fmt.Errorf("third parameter 'board' must be a string: %v", err)
+	}
+
+	newCmd := NewComposeBulletinCmd(r.Id, address, board, message)
+
+	cmd = *newCmd
+	return nil
+}
+
+// rawCmdParser works for both sendbulletin and composebulletin commands by
+// using the method of the RawCmd.
 func rawCmdParser(r *btcjson.RawCmd) (btcjson.Cmd, error) {
 	if len(r.Params) != 3 {
 		return nil, btcjson.ErrWrongNumberOfParams
@@ -105,11 +219,21 @@ func rawCmdParser(r *btcjson.RawCmd) (btcjson.Cmd, error) {
 		return nil, fmt.Errorf("third parameter 'board' must be a string: %v", err)
 	}
 
-	cmd := NewSendBulletinCmd(r.Id, address, board, message)
-	return *cmd, nil
+	var cmd btcjson.Cmd
+
+	switch {
+	case r.Method == sendbltnMeth:
+		cmd = NewSendBulletinCmd(r.Id, address, board, message)
+	case r.Method == composebltnMeth:
+		cmd = NewComposeBulletinCmd(r.Id, address, board, message)
+	default:
+		return nil, fmt.Errorf("Wrong method for json cmd: %s", r.Method)
+	}
+
+	return cmd, nil
 }
 
-func replyParser(rawJ json.RawMessage) (interface{}, error) {
+func sendReplyParser(rawJ json.RawMessage) (interface{}, error) {
 	var txSha string
 	err := json.Unmarshal(rawJ, &txSha)
 	if err != nil {
@@ -118,18 +242,25 @@ func replyParser(rawJ json.RawMessage) (interface{}, error) {
 	return txSha, nil
 }
 
-func registerJsonCmd() {
-	helpStr := "sendbulletin <address> <board> <message>"
-	btcjson.RegisterCustomCmd("sendbulletin", rawCmdParser, replyParser, helpStr)
+func composeReplyParser(rawJ json.RawMessage) (interface{}, error) {
+	var rawHex string
+	err := json.Unmarshal(rawJ, &rawHex)
+	if err != nil {
+		return nil, err
+	}
+	return rawHex, nil
+}
+
+func registerJsonCmds() {
+	sendHelpStr := sendbltnMeth + " <address> <board> <message>"
+	btcjson.RegisterCustomCmd("sendbulletin", rawCmdParser, sendReplyParser, sendHelpStr)
 	newjson.MustRegisterCmd("sendbulletin", (*SendBulletinCmdv2)(nil), newjson.UFWalletOnly)
+
+	composeHelpStr := composebltnMeth + " <address> <board> <message>"
+	btcjson.RegisterCustomCmd(composebltnMeth, rawCmdParser, composeReplyParser, composeHelpStr)
+	newjson.MustRegisterCmd(composebltnMeth, (*ComposeBulletinCmdv2)(nil), newjson.UFWalletOnly)
 }
 
 func init() {
-	registerJsonCmd()
-	//fmt.Println("Registered sendbltn commands")
-}
-
-// The minimum dust value for a PayToPubKey tx accepted by the network
-func DustAmnt() int64 {
-	return 567
+	registerJsonCmds()
 }
