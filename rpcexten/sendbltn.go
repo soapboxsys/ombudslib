@@ -13,6 +13,12 @@ var (
 	composebltnMeth = "composebulletin"
 )
 
+type BulletinCmd interface {
+	GetAddress() string
+	GetMessage() string
+	GetBoard() string
+}
+
 // NOTE any changes to the sendbulletin api must be reflected in compose as well.
 type SendBulletinCmd struct {
 	id      interface{}
@@ -35,6 +41,18 @@ func NewSendBulletinCmd(id interface{}, address, board, message string) *SendBul
 		Message: message,
 		Board:   board,
 	}
+}
+
+func (cmd SendBulletinCmd) GetAddress() string {
+	return cmd.Address
+}
+
+func (cmd SendBulletinCmd) GetBoard() string {
+	return cmd.Board
+}
+
+func (cmd SendBulletinCmd) GetMessage() string {
+	return cmd.Message
 }
 
 func (cmd SendBulletinCmd) Id() interface{} {
@@ -111,6 +129,18 @@ func NewComposeBulletinCmd(id interface{}, address, board, message string) *Comp
 		Message: message,
 		Board:   board,
 	}
+}
+
+func (cmd ComposeBulletinCmd) GetAddress() string {
+	return cmd.Address
+}
+
+func (cmd ComposeBulletinCmd) GetBoard() string {
+	return cmd.Board
+}
+
+func (cmd ComposeBulletinCmd) GetMessage() string {
+	return cmd.Message
 }
 
 func (cmd ComposeBulletinCmd) Id() interface{} {
