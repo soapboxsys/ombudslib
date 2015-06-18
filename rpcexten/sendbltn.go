@@ -88,19 +88,9 @@ func (cmd SendBulletinCmd) UnmarshalJSON(b []byte) error {
 		return btcjson.ErrWrongNumberOfParams
 	}
 
-	var address string
-	if err := json.Unmarshal(r.Params[0], &address); err != nil {
-		return fmt.Errorf("first parameter 'address' must be a string: %v", err)
-	}
-
-	var board string
-	if err := json.Unmarshal(r.Params[1], &board); err != nil {
-		return fmt.Errorf("second parameter 'board' must be a string: %v", err)
-	}
-
-	var message string
-	if err := json.Unmarshal(r.Params[2], &message); err != nil {
-		return fmt.Errorf("third parameter 'board' must be a string: %v", err)
+	address, board, message, err := extractParams(r.Params)
+	if err != nil {
+		return err
 	}
 
 	newCmd := NewSendBulletinCmd(r.Id, address, board, message)
@@ -114,6 +104,8 @@ type ComposeBulletinCmd struct {
 	Address string
 	Board   string
 	Message string
+	// To ensure there is no type confusion
+	diff int
 }
 
 type ComposeBulletinCmdv2 struct {
@@ -148,7 +140,30 @@ func (cmd ComposeBulletinCmd) Id() interface{} {
 }
 
 func (cmd ComposeBulletinCmd) Method() string {
-	return sendbltnMeth
+	return composebltnMeth
+}
+
+func extractParams(params []json.RawMessage) (string, string, string, error) {
+	throw := func(err error) (string, string, string, error) {
+		return "", "", "", err
+	}
+
+	var address string
+	if err := json.Unmarshal(params[0], &address); err != nil {
+		return throw(fmt.Errorf("first parameter 'address' must be a string: %v", err))
+	}
+
+	var board string
+	if err := json.Unmarshal(params[1], &board); err != nil {
+		return throw(fmt.Errorf("second parameter 'board' must be a string: %v", err))
+	}
+
+	var message string
+	if err := json.Unmarshal(params[2], &message); err != nil {
+		return throw(fmt.Errorf("third parameter 'board' must be a string: %v", err))
+	}
+
+	return address, board, message, nil
 }
 
 // MarshalJSON returns the JSON encoding of cmd.  Part of the Cmd interface.
@@ -176,19 +191,9 @@ func (cmd ComposeBulletinCmd) UnmarshalJSON(b []byte) error {
 		return btcjson.ErrWrongNumberOfParams
 	}
 
-	var address string
-	if err := json.Unmarshal(r.Params[0], &address); err != nil {
-		return fmt.Errorf("first parameter 'address' must be a string: %v", err)
-	}
-
-	var board string
-	if err := json.Unmarshal(r.Params[1], &board); err != nil {
-		return fmt.Errorf("second parameter 'board' must be a string: %v", err)
-	}
-
-	var message string
-	if err := json.Unmarshal(r.Params[2], &message); err != nil {
-		return fmt.Errorf("third parameter 'board' must be a string: %v", err)
+	address, board, message, err := extractParams(r.Params)
+	if err != nil {
+		return err
 	}
 
 	newCmd := NewComposeBulletinCmd(r.Id, address, board, message)
@@ -253,8 +258,8 @@ func composeReplyParser(rawJ json.RawMessage) (interface{}, error) {
 
 func registerJsonCmds() {
 	sendHelpStr := sendbltnMeth + " <address> <board> <message>"
-	btcjson.RegisterCustomCmd("sendbulletin", rawCmdParser, sendReplyParser, sendHelpStr)
-	newjson.MustRegisterCmd("sendbulletin", (*SendBulletinCmdv2)(nil), newjson.UFWalletOnly)
+	btcjson.RegisterCustomCmd(sendbltnMeth, rawCmdParser, sendReplyParser, sendHelpStr)
+	newjson.MustRegisterCmd(sendbltnMeth, (*SendBulletinCmdv2)(nil), newjson.UFWalletOnly)
 
 	composeHelpStr := composebltnMeth + " <address> <board> <message>"
 	btcjson.RegisterCustomCmd(composebltnMeth, rawCmdParser, composeReplyParser, composeHelpStr)
