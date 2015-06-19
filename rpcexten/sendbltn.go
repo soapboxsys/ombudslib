@@ -104,8 +104,6 @@ type ComposeBulletinCmd struct {
 	Address string
 	Board   string
 	Message string
-	// To ensure there is no type confusion
-	diff int
 }
 
 type ComposeBulletinCmdv2 struct {
