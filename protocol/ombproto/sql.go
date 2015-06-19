@@ -1,38 +1,48 @@
 package ombproto
 
-import (
-	"bufio"
-	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
-)
-
-func GetCreateSql() (string, error) {
+func GetCreateSql() string {
 	// Returns the SQL command that is used to create the pubrecord.db
 	// We figure out where that file is by using GOPATH
 
-	route := "src/github.com/soapboxsys/ombudslib/protocol/create_table.sql"
+	sql := `	
+-- DB Schema -- Version 0.1.2
 
-	gopath := os.Getenv("GOPATH")
-	if len(gopath) < 1 {
-		return "", errors.New("The EnvVar $GOPATH is not set!!")
-	}
 
-	fpath := filepath.Join(gopath, route)
+CREATE TABLE blocks (
+    hash        TEXT NOT NULL, 
+    prevhash    TEXT, 
+    height      INT,        -- The number of blocks between this one and the genesis block.
+    timestamp   INT,        -- The timestamp stored as an epoch time
 
-	file, err := os.Open(fpath)
-	if err != nil {
-		return "", nil
-	}
+    PRIMARY KEY(hash)
+    FOREIGN KEY(prevhash) REFERENCES blocks(hash)
+);
 
-	sql := ""
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		sql += "\n" + scanner.Text()
-	}
-	if len(sql) < 10 {
-		return "", fmt.Errorf("File is empty")
-	}
-	return sql, nil
+CREATE TABLE bulletins (
+    author      TEXT NOT NULL,  -- From the address of the first OutPoint used.
+    txid        TEXT NOT NULL, 
+    board       TEXT,           -- UTF-8
+    message     TEXT NOT NULL,  -- UTF-8, must have some content.
+    timestamp   INT,            -- Seconds since Jan 1, 1970
+    block       TEXT,
+
+    PRIMARY KEY(txid), 
+    FOREIGN KEY(block) REFERENCES blocks(hash)
+);
+
+-- The point of the blacklist is to highlight the fact that editorial control is still possible,
+-- but now the choice is given explicity to the third party.
+create TABLE blacklist ( 
+    txid    TEXT,
+    reason  TEXT NOT NULL,
+
+    PRIMARY KEY(txid),
+    FOREIGN KEY(txid) REFERENCES bulletins(txid)
+);
+
+CREATE INDEX IF NOT EXISTS idx_height ON blocks (height);
+CREATE INDEX IF NOT EXISTS idx_timestamp ON blocks (timestamp);
+
+`
+	return sql
 }

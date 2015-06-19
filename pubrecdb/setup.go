@@ -66,10 +66,7 @@ func InitDB(path string) (*PublicRecord, error) {
 	}
 
 	// Get the database schema for the public record.
-	create, err := ombproto.GetCreateSql()
-	if err != nil {
-		return nil, err
-	}
+	create := ombproto.GetCreateSql()
 
 	dropcmd := `
 	DROP TABLE IF EXISTS blocks;
