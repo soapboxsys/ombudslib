@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/btcsuite/btcd/btcjson"
+	newjson "github.com/btcsuite/btcd/btcjson/v2/btcjson"
 )
 
 var (
@@ -15,16 +16,17 @@ var (
 type WalletSetupCmd struct {
 	id         interface{}
 	Passphrase string `json:"passphrase"`
-	UseSeed    bool   `json:"useSeed"`
-	RandSeed   string `json:"randseed"`
 }
 
-func NewWalletSetupCmd(id interface{}, phrase string, us bool, seed string) *WalletSetupCmd {
+// For ombctl
+type WalletSetupCmdv2 struct {
+	Passphrase string
+}
+
+func NewWalletSetupCmd(id interface{}, phrase string) *WalletSetupCmd {
 	return &WalletSetupCmd{
 		id:         id,
 		Passphrase: phrase,
-		UseSeed:    us,
-		RandSeed:   seed,
 	}
 }
 
@@ -39,8 +41,6 @@ func (cmd WalletSetupCmd) Method() string {
 func (cmd WalletSetupCmd) MarshalJSON() ([]byte, error) {
 	params := []interface{}{
 		cmd.Passphrase,
-		cmd.UseSeed,
-		cmd.RandSeed,
 	}
 	raw, err := btcjson.NewRawCmd(cmd.id, cmd.Method(), params)
 	if err != nil {
@@ -55,26 +55,17 @@ func (cmd WalletSetupCmd) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if len(r.Params) != 3 {
+	if len(r.Params) != 1 {
 		return btcjson.ErrWrongNumberOfParams
 	}
 
-	var passphrase, randSeed string
-	var useSeed bool
+	var passphrase string
 
 	if err := json.Unmarshal(r.Params[0], &passphrase); err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(r.Params[1], &useSeed); err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(r.Params[2], &randSeed); err != nil {
-		return err
-	}
-
-	newCmd := NewWalletSetupCmd(r.Id, passphrase, useSeed, randSeed)
+	newCmd := NewWalletSetupCmd(r.Id, passphrase)
 	cmd = *newCmd
 	return nil
 }
@@ -96,7 +87,7 @@ type WalletStateCheck struct {
 
 // using the method of the RawCmd.
 func rawSetupCmdParser(r *btcjson.RawCmd) (btcjson.Cmd, error) {
-	if len(r.Params) != 3 {
+	if len(r.Params) != 1 {
 		return nil, btcjson.ErrWrongNumberOfParams
 	}
 
@@ -105,24 +96,15 @@ func rawSetupCmdParser(r *btcjson.RawCmd) (btcjson.Cmd, error) {
 		return nil, fmt.Errorf("first parameter 'passphrase' must be a string: %v", err)
 	}
 
-	var useSeed bool
-	if err := json.Unmarshal(r.Params[1], &useSeed); err != nil {
-		return nil, fmt.Errorf("second parameter 'useSeed' must be a bool: %v", err)
-	}
-
-	var randSeed string
-	if err := json.Unmarshal(r.Params[2], &randSeed); err != nil {
-		return nil, fmt.Errorf("third parameter 'randSeed' must be a string: %v", err)
-	}
-
 	var cmd btcjson.Cmd
-	cmd = NewWalletSetupCmd(r.Id, passphrase, useSeed, randSeed)
+	cmd = NewWalletSetupCmd(r.Id, passphrase)
 
 	return cmd, nil
 }
 
 func registerWalletSetupCmds() {
-	walletSetupHelpStr := walletSetupMeth + " <passphrase> [<useSeed> <randseed>]"
+	walletSetupHelpStr := walletSetupMeth + " <passphrase>"
 
 	btcjson.RegisterCustomCmd(walletSetupMeth, rawSetupCmdParser, walletSetupReplyParser, walletSetupHelpStr)
+	newjson.MustRegisterCmd(walletSetupMeth, (*WalletSetupCmdv2)(nil), newjson.UFWalletOnly)
 }
