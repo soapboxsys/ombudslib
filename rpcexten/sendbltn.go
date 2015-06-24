@@ -200,9 +200,26 @@ func (cmd ComposeBulletinCmd) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// rawCmdParser works for both sendbulletin and composebulletin commands by
+func sendReplyParser(rawJ json.RawMessage) (interface{}, error) {
+	var txSha string
+	err := json.Unmarshal(rawJ, &txSha)
+	if err != nil {
+		return nil, err
+	}
+	return txSha, nil
+}
+
+func composeReplyParser(rawJ json.RawMessage) (interface{}, error) {
+	var rawHex string
+	err := json.Unmarshal(rawJ, &rawHex)
+	if err != nil {
+		return nil, err
+	}
+	return rawHex, nil
+}
+
 // using the method of the RawCmd.
-func rawCmdParser(r *btcjson.RawCmd) (btcjson.Cmd, error) {
+func rawBltnCmdParser(r *btcjson.RawCmd) (btcjson.Cmd, error) {
 	if len(r.Params) != 3 {
 		return nil, btcjson.ErrWrongNumberOfParams
 	}
@@ -236,34 +253,12 @@ func rawCmdParser(r *btcjson.RawCmd) (btcjson.Cmd, error) {
 	return cmd, nil
 }
 
-func sendReplyParser(rawJ json.RawMessage) (interface{}, error) {
-	var txSha string
-	err := json.Unmarshal(rawJ, &txSha)
-	if err != nil {
-		return nil, err
-	}
-	return txSha, nil
-}
-
-func composeReplyParser(rawJ json.RawMessage) (interface{}, error) {
-	var rawHex string
-	err := json.Unmarshal(rawJ, &rawHex)
-	if err != nil {
-		return nil, err
-	}
-	return rawHex, nil
-}
-
-func registerJsonCmds() {
+func registerJsonSendCmds() {
 	sendHelpStr := sendbltnMeth + " <address> <board> <message>"
-	btcjson.RegisterCustomCmd(sendbltnMeth, rawCmdParser, sendReplyParser, sendHelpStr)
+	btcjson.RegisterCustomCmd(sendbltnMeth, rawBltnCmdParser, sendReplyParser, sendHelpStr)
 	newjson.MustRegisterCmd(sendbltnMeth, (*SendBulletinCmdv2)(nil), newjson.UFWalletOnly)
 
 	composeHelpStr := composebltnMeth + " <address> <board> <message>"
-	btcjson.RegisterCustomCmd(composebltnMeth, rawCmdParser, composeReplyParser, composeHelpStr)
+	btcjson.RegisterCustomCmd(composebltnMeth, rawBltnCmdParser, composeReplyParser, composeHelpStr)
 	newjson.MustRegisterCmd(composebltnMeth, (*ComposeBulletinCmdv2)(nil), newjson.UFWalletOnly)
-}
-
-func init() {
-	registerJsonCmds()
 }
