@@ -79,7 +79,7 @@ func (cmd SendBulletinCmd) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
-func (cmd SendBulletinCmd) UnmarshalJSON(b []byte) error {
+func (cmd *SendBulletinCmd) UnmarshalJSON(b []byte) error {
 	var r btcjson.RawCmd
 	if err := json.Unmarshal(b, &r); err != nil {
 		return err
@@ -95,7 +95,7 @@ func (cmd SendBulletinCmd) UnmarshalJSON(b []byte) error {
 
 	newCmd := NewSendBulletinCmd(r.Id, address, board, message)
 
-	cmd = *newCmd
+	*cmd = *newCmd
 	return nil
 }
 
@@ -180,7 +180,7 @@ func (cmd ComposeBulletinCmd) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
-func (cmd ComposeBulletinCmd) UnmarshalJSON(b []byte) error {
+func (cmd *ComposeBulletinCmd) UnmarshalJSON(b []byte) error {
 	var r btcjson.RawCmd
 	if err := json.Unmarshal(b, &r); err != nil {
 		return err
@@ -196,7 +196,7 @@ func (cmd ComposeBulletinCmd) UnmarshalJSON(b []byte) error {
 
 	newCmd := NewComposeBulletinCmd(r.Id, address, board, message)
 
-	cmd = *newCmd
+	*cmd = *newCmd
 	return nil
 }
 

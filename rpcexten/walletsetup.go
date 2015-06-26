@@ -49,7 +49,7 @@ func (cmd WalletSetupCmd) MarshalJSON() ([]byte, error) {
 	return json.Marshal(raw)
 }
 
-func (cmd WalletSetupCmd) UnmarshalJSON(b []byte) error {
+func (cmd *WalletSetupCmd) UnmarshalJSON(b []byte) error {
 	var r btcjson.RawCmd
 	if err := json.Unmarshal(b, &r); err != nil {
 		return err
@@ -66,7 +66,7 @@ func (cmd WalletSetupCmd) UnmarshalJSON(b []byte) error {
 	}
 
 	newCmd := NewWalletSetupCmd(r.Id, passphrase)
-	cmd = *newCmd
+	*cmd = *newCmd
 	return nil
 }
 
@@ -123,7 +123,7 @@ func (cmd GetWalletStateCmd) MarshalJSON() ([]byte, error) {
 
 }
 
-func (cmd GetWalletStateCmd) UnmarshalJSON(b []byte) error {
+func (cmd *GetWalletStateCmd) UnmarshalJSON(b []byte) error {
 	var r btcjson.RawCmd
 	if err := json.Unmarshal(b, &r); err != nil {
 		return err
@@ -132,8 +132,7 @@ func (cmd GetWalletStateCmd) UnmarshalJSON(b []byte) error {
 		return btcjson.ErrWrongNumberOfParams
 	}
 
-	newCmd := NewGetWalletStateCmd(r.Id)
-	cmd = *newCmd
+	cmd.id = r.Id
 	return nil
 }
 
