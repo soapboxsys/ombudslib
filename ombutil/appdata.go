@@ -62,11 +62,8 @@ func appDataDir(goos, appName string, roaming bool) string {
 		}
 
 	case "darwin":
-		if homeDir != "" {
-			return filepath.Join("Library",
-				"Application Support", appNameUpper)
-		}
-
+		return filepath.Join("/", "Library",
+			"Application Support", appNameUpper)
 	case "plan9":
 		if homeDir != "" {
 			return filepath.Join(homeDir, appNameLower)
