@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"code.google.com/p/go-sqlite/go1/sqlite3"
+
 	"github.com/soapboxsys/ombudslib/protocol/ombproto"
 )
 
@@ -12,6 +14,8 @@ import (
 // sqlite db containing the public record
 type PublicRecord struct {
 	conn *sql.DB
+	// Read only connection for filtering
+	roConn *sqlite3.Conn
 
 	// Precompiled SQL for ombprotorest
 	selectTxid        *sql.Stmt
@@ -35,6 +39,7 @@ type PublicRecord struct {
 
 // Loads a sqlite db, checks if its reachabale and prepares all the queries.
 func LoadDB(path string) (*PublicRecord, error) {
+	path = filepath.Clean(path)
 	conn, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
@@ -45,8 +50,15 @@ func LoadDB(path string) (*PublicRecord, error) {
 		return nil, err
 	}
 
+	roPath := "file://" + path + "?mode=ro"
+	roConn, err := sqlite3.Open(roPath)
+	if err != nil {
+		return nil, err
+	}
+
 	db := &PublicRecord{
-		conn: conn,
+		conn:   conn,
+		roConn: roConn,
 	}
 
 	err = prepareQueries(db)

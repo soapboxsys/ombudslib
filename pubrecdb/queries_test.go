@@ -119,16 +119,15 @@ func TestBlockDay(t *testing.T) {
 func TestLatestDB(t *testing.T) {
 	db, _ := SetupTestDB()
 
-	lastBlk, lastBltn, err := db.LatestBlkAndBltn()
+	status, err := db.GetDBStatus()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if lastBlk != 1415862580 || lastBltn != 1415854832 {
+	if status.LatestBlk != 1415862580 || status.LatestBltn != 1415854832 {
 		t.Fatalf(
-			"Wrong latest things returned!\nBltn: %d\nBlk: %d",
-			lastBlk,
-			lastBltn,
+			"Wrong latest things returned!\nStatus: %v",
+			status,
 		)
 	}
 }
