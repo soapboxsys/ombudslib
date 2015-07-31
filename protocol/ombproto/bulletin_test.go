@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"code.google.com/p/goprotobuf/proto"
+	"github.com/golang/protobuf/proto"
 )
 
 func TestBulletinCreate(t *testing.T) {
