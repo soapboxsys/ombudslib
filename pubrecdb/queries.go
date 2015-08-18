@@ -42,7 +42,7 @@ var (
 
 	// Used by GetJsonAuthor
 	selectAuthorSql string = `
-		SELECT author, count(*), blocks.timestamp
+		SELECT author, count(*), min(blocks.timestamp)
 		FROM bulletins LEFT JOIN blocks on bulletins.block = blocks.hash
 		WHERE author = $1
 		ORDER BY blocks.timestamp ASC

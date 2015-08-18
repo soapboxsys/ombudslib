@@ -4,13 +4,13 @@ import (
 	"database/sql"
 
 	_ "code.google.com/p/go-sqlite/go1/sqlite3"
-	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 )
 
 var (
 	insertBlock = `
-		INSERT INTO blocks (hash, prevhash, height, timestamp) VALUES($1, $2, $3, $4)
+		INSERT OR REPLACE INTO blocks (hash, prevhash, height, timestamp) VALUES($1, $2, $3, $4)
 	`
 )
 
@@ -22,7 +22,9 @@ type BlockRecord struct {
 	Timestamp int64
 }
 
-// Writes a btcutil.Block to the db. Throws an error if there is a problem.
+// Writes a btcutil.Block to the db. If the block is already in the db, overwrite
+// it with the new parameters. Throws an error if there is a problem writing. Does
+// not check to see if the block hashes to the proper value.
 func (db *PublicRecord) StoreBlock(blk *btcutil.Block) error {
 
 	hash, err := blk.Sha()
