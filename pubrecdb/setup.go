@@ -32,9 +32,6 @@ type PublicRecord struct {
 	selectBlksByDay   *sql.Stmt
 	selectDBStatus    *sql.Stmt
 	selectAllAuthors  *sql.Stmt
-
-	// Precompiled Inserts
-	insertBlock *sql.Stmt
 }
 
 // Loads a sqlite db, checks if its reachabale and prepares all the queries.
@@ -177,12 +174,6 @@ func prepareQueries(db *PublicRecord) error {
 	}
 
 	db.selectAllAuthors, err = db.conn.Prepare(selectAllAuthors)
-	if err != nil {
-		return err
-	}
-
-	// Compile inserts
-	db.insertBlock, err = db.conn.Prepare(insertBlock)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package pubrecdb
 
 import (
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/protocol/ombproto"
 )
 
@@ -42,6 +43,17 @@ func (db *PublicRecord) StoreBulletin(bltn *ombproto.Bulletin) error {
 	}
 
 	return nil
+}
+
+func makeBlockRecord(blk *btcutil.Block) *BlockRecord {
+	sha, _ := blk.Sha()
+	head := blk.MsgBlock().Header
+	return &BlockRecord{
+		Hash:      sha,
+		PrevHash:  &head.PrevBlock,
+		Height:    uint64(blk.Height()),
+		Timestamp: head.Timestamp.Unix(),
+	}
 }
 
 // Returns a getblocks msg that requests the best chain.

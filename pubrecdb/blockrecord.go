@@ -26,26 +26,8 @@ type BlockRecord struct {
 // it with the new parameters. Throws an error if there is a problem writing. Does
 // not check to see if the block hashes to the proper value.
 func (db *PublicRecord) StoreBlock(blk *btcutil.Block) error {
-
-	hash, err := blk.Sha()
-	if err != nil {
-		return err
-	}
-
-	// Pull out MsgBlock to grab timestamp and prevhash.
-	msgblk := blk.MsgBlock()
-
-	// Execute insert with the parameters, ignore the result and catch any errors.
-	_, err = db.insertBlock.Exec(
-		hash.String(),
-		msgblk.Header.PrevBlock.String(),
-		blk.Height(),
-		msgblk.Header.Timestamp,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
+	blkRec := makeBlockRecord(blk)
+	return db.StoreBlockRecord(blkRec)
 }
 
 // Writes a block to the sqlite db
