@@ -1,0 +1,25 @@
+// The protocol buffer format for serialized records 
+// Version: 0.2.0 
+
+// The package output for go is wirerecord
+package wirerecord
+
+option java_outer_classname = "OmbudsWireProtos";
+
+message WireBulletin {
+    required string message     = 1;
+    required uint64 timestamp   = 2; // Seconds since 00:00:00 Jan 1, 1970
+    optional Location           = 3;
+}
+
+// A single WGS84 Datum
+message Location {
+    required int64 lat          = 1;
+    required int64 lon          = 2;
+    required int64 h            = 3;
+}
+
+message WireEndorsment {
+    required bytes bltnid        = 1; // A 32 byte SHA hash of the referenced bulletin's txid
+    required uint64 timestamp    = 2; // Seconds since 00:00:00 Jan 1, 1970
+}
