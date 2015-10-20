@@ -4,7 +4,7 @@
 // The package output for go is wirerecord
 package wirerecord;
 option java_package = "systems.soapbox.wirerecord";
-option java_outer_classname = "OmbudsWireProtos";
+option java_outer_classname = "Protos";
 
 message WireBulletin {
     required string message     = 1;
