@@ -2,7 +2,7 @@
 // Version: 0.2.0 
 
 // The package output for go is wirerecord
-package wirerecord
+package wirerecord;
 
 option java_outer_classname = "OmbudsWireProtos";
 
