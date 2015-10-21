@@ -14,9 +14,9 @@ message WireBulletin {
 
 // A single WGS84 Datum
 message Location {
-    required int64 lat          = 1;
-    required int64 lon          = 2;
-    required int64 h            = 3;
+    required double lat          = 1;
+    required double lon          = 2;
+    required double h            = 3;
 }
 
 message WireEndorsment {
