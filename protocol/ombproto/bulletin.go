@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
+	"github.com/golang/protobuf/proto"
 	"github.com/soapboxsys/ombudslib/protocol/ombproto/wirebulletin"
 )
 
@@ -129,7 +129,7 @@ func NewBulletin(tx *wire.MsgTx, blkhash *wire.ShaHash, net *chaincfg.Params) (*
 	}
 
 	// TODO assert that msg and board are valid UTF-8 strings.
-	hash, _ := tx.TxSha()
+	hash := tx.TxSha()
 
 	bltn := &Bulletin{
 		Txid:      &hash,
@@ -213,7 +213,7 @@ func getAuthor(tx *wire.MsgTx, net *chaincfg.Params) (string, error) {
 	dummyTx := wire.NewMsgTx()
 
 	// Setup a script executor to parse the raw bytes of the signature script.
-	script, err := txscript.NewScript(sigScript, make([]byte, 0), 0, dummyTx, 0)
+	script, err := txscript.NewEngine(sigScript, dummyTx, 0, txscript.ScriptBip16, nil)
 	if err != nil {
 		return "", err
 	}

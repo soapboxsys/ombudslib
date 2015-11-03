@@ -46,7 +46,7 @@ func (db *PublicRecord) StoreBulletin(bltn *ombproto.Bulletin) error {
 }
 
 func makeBlockRecord(blk *btcutil.Block) *BlockRecord {
-	sha, _ := blk.Sha()
+	sha := blk.Sha()
 	head := blk.MsgBlock().Header
 	return &BlockRecord{
 		Hash:      sha,
