@@ -1,4 +1,4 @@
-package pubrecdb
+package pubrecdb_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 
 func TestJsonBlock(t *testing.T) {
 
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	h := "00000000777213b4fd7c5d5a71b9b52608356c4194203b1b63d1bb0e6141d17d"
 	jsonBlkResp, err := db.GetJsonBlock(h)
@@ -34,7 +34,7 @@ func TestJsonBlock(t *testing.T) {
 }
 
 func TestJsonAuthor(t *testing.T) {
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	author := "miUDcP8obUKPhqkrBrQz57sbSg2Mz1kZXH"
 
@@ -51,7 +51,7 @@ func TestJsonAuthor(t *testing.T) {
 }
 
 func TestWholeBoard(t *testing.T) {
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	board := "ahimsa-dev"
 
@@ -87,7 +87,7 @@ func TestWholeBoard(t *testing.T) {
 }
 
 func TestAllBoards(t *testing.T) {
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	allBoards, err := db.GetAllBoards()
 
@@ -102,7 +102,7 @@ func TestAllBoards(t *testing.T) {
 }
 
 func TestBlockDay(t *testing.T) {
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	target := time.Date(2014, time.November, 1, 0, 0, 0, 0, time.UTC)
 
@@ -117,7 +117,7 @@ func TestBlockDay(t *testing.T) {
 }
 
 func TestLatestDB(t *testing.T) {
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	status, err := db.GetDBStatus()
 	if err != nil {

@@ -1,9 +1,9 @@
-package pubrecdb
+package pubrecdb_test
 
 import "testing"
 
 func TestWriteROFails(t *testing.T) {
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	cmd := `INSERT INTO bulletins (message, board, author) VALUES ('you', 'got', 'pwnd')`
 
@@ -14,7 +14,7 @@ func TestWriteROFails(t *testing.T) {
 }
 
 func TestReadROWorks(t *testing.T) {
-	db, _ := SetupTestDB()
+	db, _ := setupTestDB(true)
 
 	cmd := `SELECT * FROM bulletins`
 
