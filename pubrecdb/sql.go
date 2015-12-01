@@ -8,7 +8,7 @@ func createSql() string {
 
 CREATE TABLE blocks (
     hash        TEXT NOT NULL, 
-    prevhash    TEXT, 
+    prevhash    TEXT NOT NULL, 
     height      INT,        -- The number of blocks between this one and the genesis block.
     timestamp   INT,        -- The timestamp stored as an epoch time
     -- Extra fields added to reproduce hash of block
@@ -18,7 +18,7 @@ CREATE TABLE blocks (
     nonce       INT,        -- uint32
 
     PRIMARY KEY(hash)
-    FOREIGN KEY(prevhash) REFERENCES blocks(hash)
+    FOREIGN KEY (prevhash) REFERENCES blocks(hash)
 );
 
 CREATE TABLE bulletins (
@@ -60,8 +60,7 @@ CREATE TABLE tags (
 
 CREATE INDEX IF NOT EXISTS idx_tags ON tags (tag);
 CREATE INDEX IF NOT EXISTS idx_height ON blocks (height);
-CREATE INDEX IF NOT EXISTS idx_timestamp ON blocks (timestamp);
-`
+CREATE INDEX IF NOT EXISTS idx_timestamp ON blocks (timestamp);`
 
 	return sql
 }

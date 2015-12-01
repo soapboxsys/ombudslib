@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/soapboxsys/ombudslib/protocol/ombproto"
 )
 
 func TestBulletinCreate(t *testing.T) {

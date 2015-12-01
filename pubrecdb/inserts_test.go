@@ -12,7 +12,7 @@ import (
 
 // TestBlockHeadInsert tries to insert a <- b and then c which points nowhere
 // and should fail.
-func TestBlockHeadInsert(t *testing.T) {
+func TestBlockHeadInserts(t *testing.T) {
 	db, _ := setupTestDB(false)
 
 	bogus_h := wire.ShaHash([wire.HashSize]byte{
@@ -23,18 +23,19 @@ func TestBlockHeadInsert(t *testing.T) {
 	})
 
 	// Test the insertion of a genesis block
-
 	a := chaincfg.MainNetParams.GenesisBlock
 	blk := btcutil.NewBlock(a)
 	blk.SetHeight(0)
 
 	err := db.InsertBlockHead(blk)
-	if err != nil {
-		t.Fatalf("Genesis blk header insert failed: %v:", err)
+	if err == nil {
+		expected_err := fmt.Errorf("sqlite3: column hash is not unique [2067]")
+		t.Fatalf("Genesis blk header insert did not fail with: %s\n"+
+			"Instead we saw: %s", expected_err, err)
 	}
+	// TODO test num rows in blocks
 
 	// Test the insertion of a linked block
-
 	b := wire.MsgBlock{
 		Header: wire.BlockHeader{
 			Version:    1,
@@ -55,7 +56,6 @@ func TestBlockHeadInsert(t *testing.T) {
 	}
 
 	// Test the insertion of a block that is not in the chain.
-
 	c := wire.MsgBlock{
 		Header: wire.BlockHeader{
 			Version:    1,
@@ -69,13 +69,13 @@ func TestBlockHeadInsert(t *testing.T) {
 
 	blk = btcutil.NewBlock(&c)
 	blk.SetHeight(99)
-
-	// Sqlite will throw a Foreign Key failure with this text:
-	expected_err := fmt.Errorf("sqlite: bad foreign key")
-
 	err = db.InsertBlockHead(blk)
-	if err != expected_err {
+	if err == nil {
+		// Sqlite will throw a Foreign Key failure with this text:
+		expected_err := fmt.Errorf("sqlite: SQL error: foreign key constraint failed")
 		t.Fatalf("Blk c header insert should have failed with: %v"+
 			" but got: %v", expected_err, err)
 	}
+
+	// TODO test num rows in blocks
 }

@@ -2,12 +2,14 @@ package pubrecdb
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"code.google.com/p/go-sqlite/go1/sqlite3"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcutil"
 
-	"github.com/soapboxsys/ombudslib/protocol/ombproto"
+	"code.google.com/p/go-sqlite/go1/sqlite3"
 )
 
 // The overarching struct that contains everything needed for a connection to a
@@ -32,10 +34,65 @@ type PublicRecord struct {
 	selectBlksByDay   *sql.Stmt
 	selectDBStatus    *sql.Stmt
 	selectAllAuthors  *sql.Stmt
+
+	// Precompiled inserts
+	insertBlockHead *sql.Stmt
+}
+
+// Creates a DB at the desired path or drops an existing one and recreates a
+// new empty one at the path. The bitcoin network is needed because the genesis
+// block must be inserted first for the DB to initialized properly.
+func InitDB(path string, params chaincfg.Params) (*PublicRecord, error) {
+	path = filepath.Clean(path)
+	// Check if the file exists and remove it if it does.
+	if _, err := os.Stat(path); err == nil {
+		if err := os.Remove(path); err != nil {
+			return nil, err
+		}
+	}
+
+	conn, err := sql.Open("sqlite3", path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Execute the Create Table sql
+	_, err = conn.Exec(createSql())
+	if err != nil {
+		return nil, err
+	}
+	conn.Close()
+
+	db, err := createPubRec(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := prepareInserts(db); err != nil {
+		return nil, err
+	}
+
+	// Insert the net's Genesis block
+	genesisBlk := btcutil.NewBlock(params.GenesisBlock)
+	genesisBlk.SetHeight(0)
+
+	if err := db.InsertBlockHead(genesisBlk); err != nil {
+		return nil, err
+	}
+
+	return prepareDB(db)
 }
 
 // Loads a sqlite db, checks if its reachabale and prepares all the queries.
 func LoadDB(path string) (*PublicRecord, error) {
+	db, err := createPubRec(path)
+	if err != nil {
+		return nil, err
+	}
+	return prepareDB(db)
+}
+
+func createPubRec(path string) (*PublicRecord, error) {
 	path = filepath.Clean(path)
 	conn, err := sql.Open("sqlite3", path)
 	if err != nil {
@@ -58,39 +115,41 @@ func LoadDB(path string) (*PublicRecord, error) {
 		roConn: roConn,
 	}
 
-	err = prepareQueries(db)
-	if err != nil {
-		return nil, err
+	return db, nil
+}
+
+// prepareDB takes a pubrecord and initializes all of the precompiled
+// statements and executes any connection specific code
+func prepareDB(db *PublicRecord) (*PublicRecord, error) {
+
+	if err := execPragma(db); err != nil {
+		return nil, fmt.Errorf("Pragma defs failed: %s", err)
+	}
+
+	/*if err := prepareQueries(db); err != nil {
+		return nil, fmt.Errorf("Preparing queries failed: %v", err)
+	}*/
+
+	if err := prepareInserts(db); err != nil {
+		return nil, fmt.Errorf("Preparing inserts failed: %v", err)
 	}
 
 	return db, nil
 }
 
-// Creates a DB at the desired path or drops an existing one and recreates a
-// new empty one at the path.
-func InitDB(path string) (*PublicRecord, error) {
-	conn, err := sql.Open("sqlite3", path)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the database schema for the public record.
-	create := ombproto.GetCreateSql()
-
-	dropcmd := `
-	DROP TABLE IF EXISTS blocks;
-	DROP TABLE IF EXISTS bulletins;
-	DROP TABLE IF EXISTS blacklist;
+// execPragma executes directives that are needed for the write side of the SQL
+// conn to enforce high quality (and secure!) sql statements.
+func execPragma(db *PublicRecord) error {
+	// The following pragmas define the operation of the sqlite3 conn. This
+	// does important things: it enforces foreign key constraints, ...
+	pragmas := `
+	PRAGMA foreign_keys=ON;
 	`
 
-	// DROP db if it exists and recreate it.
-	_, err = conn.Exec(dropcmd + create)
-	defer conn.Close()
-	if err != nil {
-		return nil, err
+	if _, err := db.conn.Exec(pragmas); err != nil {
+		return err
 	}
-
-	return LoadDB(path)
+	return nil
 }
 
 // Prepares all of the selects for maximal speediness note that all of the queries
@@ -179,23 +238,4 @@ func prepareQueries(db *PublicRecord) error {
 	}
 
 	return nil
-}
-
-func SetupTestDB() (*PublicRecord, error) {
-
-	var dbpath string
-
-	testEnvPath := os.Getenv("TEST_DB_PATH")
-	if testEnvPath != "" {
-		dbpath = testEnvPath
-	} else {
-		dbpath = os.Getenv("GOPATH") + "/src/github.com/soapboxsys/ombudslib/pubrecdb/test.db"
-		dbpath = filepath.Clean(dbpath)
-	}
-	var err error
-	db, err := LoadDB(dbpath)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
 }

@@ -14,7 +14,7 @@ import (
 func ProcessBlock(blk *btcutil.Block, net *chaincfg.Params) ([]*ombproto.Bulletin, error) {
 	bltns := []*ombproto.Bulletin{}
 
-	sha, _ := blk.Sha()
+	sha := blk.Sha()
 	for _, tx := range blk.Transactions() {
 		bltn, ok := ConvertTransaction(tx, sha, net)
 		if ok {
