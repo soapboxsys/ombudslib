@@ -23,13 +23,14 @@ CREATE TABLE blocks (
 
 CREATE TABLE bulletins (
     txid        TEXT NOT NULL, 
+    block       TEXT NOT NULL,
     author      TEXT NOT NULL,  -- From the address of the first OutPoint used.
     message     TEXT NOT NULL,  -- UTF-8, must have some content.
     timestamp   INT,            -- Seconds since Jan 1, 1970
     latitude    INT,            -- Fixed point decimal. Divided by 1,000,000 to produce position
     longitude   INT,            -- See above
+    height      INT,            -- Part of coords
 
-    block       TEXT,
 
     PRIMARY KEY(txid), 
     FOREIGN KEY(block) REFERENCES blocks(hash)
@@ -46,21 +47,23 @@ create TABLE blacklist (
 );
 
 CREATE TABLE endorsements (
-    txid        TEXT,
-    timestamp   INT,  -- Unix time
-    author      TEXT, -- formatted as a bitcoin address.
+    txid        TEXT NOT NULL, -- the enclosing transactions SHA hash
+    bid         TEXT NOT NULL, -- the endorsed bulletins SHA hash
+    timestamp   INT NOT NULL,  -- Unix time
+    author      TEXT NOT NULL, -- formatted as a bitcoin address.
 
     PRIMARY KEY(txid)
 );
 
 CREATE TABLE tags (
-    txid TEXT,
-    tag  TEXT
+    txid   TEXT,
+    value  TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_tags ON tags (tag);
+CREATE INDEX IF NOT EXISTS idx_tags ON tags (value);
 CREATE INDEX IF NOT EXISTS idx_height ON blocks (height);
-CREATE INDEX IF NOT EXISTS idx_timestamp ON blocks (timestamp);`
+CREATE INDEX IF NOT EXISTS idx_timestamp ON blocks (timestamp);
+`
 
 	return sql
 }

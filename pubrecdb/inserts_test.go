@@ -8,6 +8,7 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
+	"github.com/soapboxsys/ombudslib/protocol/ombproto"
 )
 
 // TestBlockHeadInsert tries to insert a <- b and then c which points nowhere
@@ -78,4 +79,38 @@ func TestBlockHeadInserts(t *testing.T) {
 	}
 
 	// TODO test num rows in blocks
+}
+
+// TestBulletinInserts asserts that the sql inserts and accompanying logic that
+// inserts bulletins into the public records is functioning properly. After
+// inserting it examines the state of the test.db to see if the bulletins (and
+// tags) are inserted properly.
+func TestBulletinInserts(t *testing.T) {
+	db, _ := setupTestDB(false)
+
+	fakeTxid, _ := wire.NewShaHash([]byte{
+		0xF0, 0x12, 0x34, 0x56, 0x78, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F,
+	})
+	genHash := chaincfg.MainNetParams.GenesisBlock.BlockSha()
+
+	// TODO use the proper constructor
+	bltn := &ombproto.Bulletin{
+		// TODO add some tags
+		Message:   "This is a test. There are many like it, but it is mine.",
+		Author:    "1F1tAaz5x1HUXrCNLbtMDqcw6o5GNn4xqX",
+		Timestamp: time.Now(),
+		Txid:      fakeTxid,
+		Block:     &genHash,
+	}
+
+	// TODO add bulletin with more than five tags
+
+	if err := db.InsertBulletin(bltn); err != nil {
+		t.Fatalf("Inserting bltn a failed with: %s", err)
+	}
+
+	// TODO assert bltn is stored in ledger.
 }

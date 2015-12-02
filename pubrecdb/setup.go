@@ -36,7 +36,10 @@ type PublicRecord struct {
 	selectAllAuthors  *sql.Stmt
 
 	// Precompiled inserts
-	insertBlockHead *sql.Stmt
+	insertBlockHead   *sql.Stmt
+	insertBulletin    *sql.Stmt
+	insertTag         *sql.Stmt
+	insertEndorsement *sql.Stmt
 }
 
 // Creates a DB at the desired path or drops an existing one and recreates a
