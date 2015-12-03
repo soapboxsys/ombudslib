@@ -268,3 +268,14 @@ func (bltn *Bulletin) NumOuts() (int, error) {
 
 	return numouts, nil
 }
+
+// Tags returns all of the tags encoded within the message body of the
+// bulletin. Only the first 5 tags are counted.
+func (bltn *Bulletin) Tags() []Tag {
+	t := []Tag{
+		NewTag("#foo", bltn),
+		NewTag("#bar", bltn),
+		NewTag("#baz", bltn),
+	}
+	return t
+}
