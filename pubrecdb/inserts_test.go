@@ -34,7 +34,15 @@ func TestBlockHeadInserts(t *testing.T) {
 		t.Fatalf("Genesis blk header insert did not fail with: %s\n"+
 			"Instead we saw: %s", expected_err, err)
 	}
-	// TODO test num rows in blocks
+
+	// Test num rows in blocks
+	cnt, err := db.BlockCount()
+	if err != nil {
+		t.Fatalf("blk cnt failed with: %s", err)
+	}
+	if cnt != 1 {
+		t.Fatalf("After gen insert blk cnt should be 1. It is: %d", cnt)
+	}
 
 	// Test the insertion of a linked block
 	b := wire.MsgBlock{
@@ -78,7 +86,6 @@ func TestBlockHeadInserts(t *testing.T) {
 			" but got: %v", expected_err, err)
 	}
 
-	// TODO test num rows in blocks
 }
 
 // TestBulletinInserts asserts that the sql inserts and accompanying logic that

@@ -1,10 +1,6 @@
 package pubrecdb_test
 
-import (
-	"testing"
-	"time"
-)
-
+/*
 func TestJsonBlock(t *testing.T) {
 
 	db, _ := setupTestDB(true)
@@ -131,3 +127,4 @@ func TestLatestDB(t *testing.T) {
 		)
 	}
 }
+*/

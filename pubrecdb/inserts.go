@@ -45,8 +45,9 @@ func prepareInserts(db *PublicRecord) (err error) {
 	return nil
 }
 
-// InsertBlock does exactly what you expect it does. If the block is already in
-// the record then an error is thrown.
+// InsertBlockHead only inserts the headers of the block into the DB.
+// If the block is already in the record then an error is thrown. It
+// makes no effort to insert bulletins or endorsements contained within it.
 func (db *PublicRecord) InsertBlockHead(blk *btcutil.Block) error {
 	h := blk.MsgBlock().Header
 
@@ -117,5 +118,5 @@ func (db *PublicRecord) InsertBulletin(bltn *ombproto.Bulletin) (err error) {
 // order (or in a staggered fashion) endorsing a bulletin that is yet to be
 // mined.
 func (db *PublicRecord) InsertEndorsement(endo ombproto.Endorsement) error {
-
+	return nil
 }

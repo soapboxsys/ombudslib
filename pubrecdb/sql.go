@@ -8,7 +8,7 @@ func createSql() string {
 
 CREATE TABLE blocks (
     hash        TEXT NOT NULL, 
-    prevhash    TEXT NOT NULL, 
+    prevhash    TEXT UNIQUE NOT NULL, -- Unique constraint prevents forks.
     height      INT,        -- The number of blocks between this one and the genesis block.
     timestamp   INT,        -- The timestamp stored as an epoch time
     -- Extra fields added to reproduce hash of block
@@ -17,7 +17,7 @@ CREATE TABLE blocks (
     difficulty  INT,        -- uint32
     nonce       INT,        -- uint32
 
-    PRIMARY KEY(hash)
+    PRIMARY KEY(hash) -- enforces
     FOREIGN KEY (prevhash) REFERENCES blocks(hash)
 );
 

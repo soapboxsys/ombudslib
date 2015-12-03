@@ -8,6 +8,11 @@ import (
 	. "github.com/soapboxsys/ombudslib/pubrecdb"
 )
 
+// SetupTestDB exports setupTestDB for tests that live inside pubrecdb.
+func SetupTestDB(add_rows bool) (*PublicRecord, error) {
+	return setupTestDB(add_rows)
+}
+
 func setupTestDB(add_rows bool) (*PublicRecord, error) {
 
 	dbpath := os.Getenv("GOPATH") + "/src/github.com/soapboxsys/ombudslib/pubrecdb/test/test.db"
