@@ -11,6 +11,8 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/golang/protobuf/proto"
+	"github.com/soapboxsys/ombudslib/ombjson"
+	"github.com/soapboxsys/ombudslib/ombproto/ombwire"
 	"github.com/soapboxsys/ombudslib/protocol/ombproto/wirebulletin"
 )
 
@@ -19,9 +21,6 @@ const (
 )
 
 var (
-	// Semantic versioning. This must be updated with changes to wirebulletin.proto
-	Version = "0.1.2"
-
 	// The delimiter that sits at the front of every bulletin.
 	Magic = [8]byte{
 		0x42, 0x52, 0x45, 0x54, 0x48, 0x52, 0x45, 0x4e, /* | BRETHREN | */
@@ -30,58 +29,23 @@ var (
 	ErrNoMsg       = errors.New("Message has no content")
 )
 
-type Author string
+type author string
 
+// A utility type that holds data and references. The unexported fields can be
+// nil.
 type Bulletin struct {
-	Txid      *wire.ShaHash
-	Block     *wire.ShaHash
-	Author    string
-	Board     string
-	Message   string
-	Timestamp time.Time
-}
+	// pulled from the enclosing tx
+	Author author
+	txid   *wire.ShaHash
 
-// Munges the pushed data of TxOuts into a single universal slice that we can
-// use as a whole message.
-func extractData(txOuts []*wire.TxOut) ([]byte, error) {
+	// The containing transaction
+	tx *wire.MsgTx
 
-	alldata := make([]byte, 0)
+	block *btcutil.Block
 
-	first := true
-	for _, txout := range txOuts {
-
-		pushMatrix, err := txscript.PushedData(txout.PkScript)
-		if err != nil {
-			return alldata, err
-		}
-		for _, pushedD := range pushMatrix {
-			if len(pushedD) != 20 {
-				return alldata, fmt.Errorf("Pushed Data is not the right length")
-			}
-
-			alldata = append(alldata, pushedD...)
-			if first {
-				// Check to see if magic bytes match and slice accordingly
-				first = false
-				lenM := len(Magic)
-				if !bytes.Equal(alldata[:lenM], Magic[:]) {
-					return alldata, fmt.Errorf("Magic bytes don't match, Saw: [% x]", alldata[:lenM])
-				}
-				alldata = alldata[lenM:]
-			}
-
-		}
-
-	}
-	// trim trailing zeros
-	for j := len(alldata) - 1; j > 0; j-- {
-		b := alldata[j]
-		if b != 0x00 {
-			alldata = alldata[:j+1]
-			break
-		}
-	}
-	return alldata, nil
+	// Derived types
+	json     *ombjson.Bulletin
+	wireBltn *ombwire.Bulletin
 }
 
 // Creates a new bulletin from the containing Tx, supplied author and optional blockhash
@@ -143,31 +107,10 @@ func NewBulletin(tx *wire.MsgTx, blkhash *wire.ShaHash, net *chaincfg.Params) (*
 	return bltn, nil
 }
 
-// The interface by which
-func NewBulletinFromStr(author string, board string, msg string) (*Bulletin, error) {
-	if len(board) > MaxBoardLen {
-		return nil, ErrMaxBoardLen
-	}
-
-	if len(msg) < 1 {
-		return nil, ErrNoMsg
-	}
-
-	// TODO assert that msg and board are valid UTF-8 strings.
-
-	bulletin := Bulletin{
-		Author:    author,
-		Board:     board,
-		Message:   msg,
-		Timestamp: time.Now(),
-	}
-	return &bulletin, nil
-}
-
 // Converts a bulletin into public key scripts for encoding
 func (bltn *Bulletin) TxOuts(toBurn int64, net *chaincfg.Params) ([]*wire.TxOut, error) {
 
-	rawbytes, err := bltn.Bytes()
+	rawbytes, err := bltn.ToBytes()
 	if err != nil {
 		return []*wire.TxOut{}, err
 	}
@@ -231,46 +174,8 @@ func getAuthor(tx *wire.MsgTx, net *chaincfg.Params) (string, error) {
 	return addrPubKey.EncodeAddress(), nil
 }
 
-// Takes a bulletin and converts into a byte array. A bulletin has two
-// components. The leading 8 magic bytes and then the serialized protocol
-// buffer that contains the real message 'payload'.
-func (bltn *Bulletin) Bytes() ([]byte, error) {
-	payload := make([]byte, 0)
-
-	wireb := &wirebulletin.WireBulletin{
-		Board:     proto.String(bltn.Board),
-		Message:   proto.String(bltn.Message),
-		Timestamp: proto.Int64(bltn.Timestamp.Unix()),
-	}
-
-	pbytes, err := proto.Marshal(wireb)
-	if err != nil {
-		return payload, err
-	}
-
-	payload = append(payload, Magic[:]...)
-	payload = append(payload, pbytes...)
-	return payload, nil
-}
-
-// Returns the number of txouts needed for this bulletin
-func (bltn *Bulletin) NumOuts() (int, error) {
-
-	rawbytes, err := bltn.Bytes()
-	if err != nil {
-		return 0, err
-	}
-
-	numouts := len(rawbytes) / 20
-	if len(rawbytes)%20 != 0 {
-		numouts += 1
-	}
-
-	return numouts, nil
-}
-
 // Tags returns all of the tags encoded within the message body of the
-// bulletin. Only the first 5 tags are counted.
+// bulletin. Only the first 5 tags are counted and returned.
 func (bltn *Bulletin) Tags() []Tag {
 	t := []Tag{
 		NewTag("#foo", bltn),
@@ -278,4 +183,47 @@ func (bltn *Bulletin) Tags() []Tag {
 		NewTag("#baz", bltn),
 	}
 	return t
+}
+
+// Munges the pushed data of TxOuts into a single universal slice that we can
+// use as a whole message.
+func extractData(txOuts []*wire.TxOut) ([]byte, error) {
+
+	alldata := make([]byte, 0)
+
+	first := true
+	for _, txout := range txOuts {
+
+		pushMatrix, err := txscript.PushedData(txout.PkScript)
+		if err != nil {
+			return alldata, err
+		}
+		for _, pushedD := range pushMatrix {
+			if len(pushedD) != 20 {
+				return alldata, fmt.Errorf("Pushed Data is not the right length")
+			}
+
+			alldata = append(alldata, pushedD...)
+			if first {
+				// Check to see if magic bytes match and slice accordingly
+				first = false
+				lenM := len(Magic)
+				if !bytes.Equal(alldata[:lenM], Magic[:]) {
+					return alldata, fmt.Errorf("Magic bytes don't match, Saw: [% x]", alldata[:lenM])
+				}
+				alldata = alldata[lenM:]
+			}
+
+		}
+
+	}
+	// trim trailing zeros
+	for j := len(alldata) - 1; j > 0; j-- {
+		b := alldata[j]
+		if b != 0x00 {
+			alldata = alldata[:j+1]
+			break
+		}
+	}
+	return alldata, nil
 }
