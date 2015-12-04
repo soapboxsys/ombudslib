@@ -2,12 +2,12 @@
 // Version: 0.2.0 
 
 // The package output for go is wirerecord
-package wirerecord;
+package ombwire;
 // Required names for Java packaging
 option java_package = "systems.soapbox.wirerecord";
 option java_outer_classname = "OmbudsWireProtos";
 
-message WireBulletin {
+message Bulletin {
     required string message     = 1;
     required uint64 timestamp   = 2; // Seconds since 00:00:00 Jan 1, 1970
     optional Location location  = 3;
@@ -20,7 +20,7 @@ message Location {
     required double h            = 3;
 }
 
-message WireEndorsment {
-    required bytes bltnid        = 1; // A 32 byte SHA hash of the referenced bulletin's txid
+message Endorsement {
+    required bytes bid        = 1; // A 32 byte SHA hash of the referenced bulletin's txid
     required uint64 timestamp    = 2; // Seconds since 00:00:00 Jan 1, 1970
 }
