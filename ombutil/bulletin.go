@@ -19,13 +19,13 @@ type Bulletin struct {
 	Author Author
 
 	// The containing transaction
-	tx *wire.MsgTx
+	Tx *wire.MsgTx
 
-	block *btcutil.Block
+	Block *btcutil.Block
 
 	// Derived types
-	json     *ombjson.Bulletin
-	wireBltn *ombwire.Bulletin
+	Json *ombjson.Bulletin
+	Wire *ombwire.Bulletin
 }
 
 // NewBulletin creates a bulletin using the passed tx as the container of the
@@ -44,9 +44,9 @@ func NewBulletin(tx *wire.MsgTx, net *chaincfg.Params) (*Bulletin, error) {
 	}
 
 	bltn := &Bulletin{
-		Author:   author,
-		tx:       tx,
-		wireBltn: wireBltn,
+		Author: author,
+		Tx:     tx,
+		Wire:   wireBltn,
 	}
 
 	return bltn, nil
@@ -54,7 +54,7 @@ func NewBulletin(tx *wire.MsgTx, net *chaincfg.Params) (*Bulletin, error) {
 }
 
 func (bltn *Bulletin) AddBlock(blk *btcutil.Block) {
-	bltn.block = blk
+	bltn.Block = blk
 }
 
 // Returns the "Author" who signed the first txin of the transaction

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/btcsuite/btcutil"
-	"github.com/soapboxsys/ombudslib/protocol/ombproto"
+	"github.com/soapboxsys/ombudslib/ombutil"
 )
 
 var (
@@ -27,17 +27,63 @@ var (
 )
 
 func prepareInserts(db *PublicRecord) (err error) {
-	db.insertBlockHead, err = db.conn.Prepare(insertBlockHeadSql)
+	db.insertBlockHeadStmt, err = db.conn.Prepare(insertBlockHeadSql)
 	if err != nil {
 		return err
 	}
 
-	db.insertBulletin, err = db.conn.Prepare(insertBulletinSql)
+	db.insertBulletinStmt, err = db.conn.Prepare(insertBulletinSql)
 	if err != nil {
 		return err
 	}
 
-	db.insertTag, err = db.conn.Prepare(insertTagSql)
+	db.insertTagStmt, err = db.conn.Prepare(insertTagSql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// InsertOmbBlock creates a SQL transaction that commits everything in the block
+// in one go into the sqlite db. This preserves the consistency of the database
+// even in cases where the power fails.
+func (db *PublicRecord) InsertOmbBlock(oblk *ombutil.UBlock) error {
+
+	// Start a Sql Transaction
+	tx, err := db.conn.Begin()
+
+	err = db.insertBlockHead(tx, oblk.Block)
+	if err != nil {
+		return tx.Rollback()
+	}
+
+	// Insert every bulletin in the block
+	for _, bltn := range oblk.Bulletins {
+		err = db.insertBulletin(tx, bltn)
+		if err != nil {
+			return tx.Rollback()
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (db *PublicRecord) insertBlockHead(tx *sql.Tx, blk *btcutil.Block) error {
+	h := blk.MsgBlock().Header
+
+	hash := h.BlockSha().String()
+	prevhash := h.PrevBlock.String()
+	height := blk.Height()
+	timestamp := uint32(h.Timestamp.Unix())
+
+	v := h.Version
+	m := h.MerkleRoot.String()
+	d := h.Bits
+	n := h.Nonce
+
+	_, err := tx.Stmt(db.insertBlockHeadStmt).Exec(hash, prevhash, height, timestamp,
+		v, m, d, n)
 	if err != nil {
 		return err
 	}
@@ -48,21 +94,53 @@ func prepareInserts(db *PublicRecord) (err error) {
 // InsertBlockHead only inserts the headers of the block into the DB.
 // If the block is already in the record then an error is thrown. It
 // makes no effort to insert bulletins or endorsements contained within it.
-func (db *PublicRecord) InsertBlockHead(blk *btcutil.Block) error {
-	h := blk.MsgBlock().Header
+func (db *PublicRecord) InsertBlockHead(blk *btcutil.Block) (bool, error) {
+	tx, err := db.conn.Begin()
+	if err != nil {
+		return false, err
+	}
 
-	hash := h.BlockSha().String()
-	prevhash := h.PrevBlock.String()
-	height := blk.Height()
-	timestamp := uint32(h.Timestamp.Unix())
-	v := h.Version
-	m := h.MerkleRoot.String()
-	d := h.Bits
-	n := h.Nonce
+	err = db.insertBlockHead(tx, blk)
+	if err != nil {
+		return false, tx.Rollback()
+	}
 
-	_, err := db.insertBlockHead.Exec(hash, prevhash, height, timestamp, v, m, d, n)
+	if err = tx.Commit(); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// insertBulletin ombutil.Bulletin used here requires references to a MsgTx, a
+// Block and a ombwire.Bulletin. It will throw a nil pointer if any of these
+// are missing.
+func (db *PublicRecord) insertBulletin(tx *sql.Tx, bltn *ombutil.Bulletin) (err error) {
+
+	txid := bltn.Tx.TxSha().String()
+	blkHash := bltn.Block.Sha().String()
+	ath := string(bltn.Author)
+
+	msg := bltn.Wire.GetMessage()
+	ts := bltn.Wire.GetTimestamp()
+
+	loc := bltn.Wire.GetLocation()
+	lt := loc.GetLat()
+	lg := loc.GetLon()
+	ht := loc.GetH()
+
+	// Insert the Bulletin
+	_, err = tx.Stmt(db.insertBulletinStmt).Exec(txid, blkHash, ath, msg, ts, lt, lg, ht)
 	if err != nil {
 		return err
+	}
+
+	// Insert each tag within the bulletin
+	for _, tag := range bltn.Tags() {
+		_, err = tx.Stmt(db.insertTagStmt).Exec(txid, string(tag))
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -71,7 +149,7 @@ func (db *PublicRecord) InsertBlockHead(blk *btcutil.Block) error {
 // InsertBulletin takes a bulletins and inserts it into the pubrecord. A
 // ombproto.Bulletin is used here instead of a wire.Bulletin because of the
 // high level utilities offered by the ombproto type.
-func (db *PublicRecord) InsertBulletin(bltn *ombproto.Bulletin) (err error) {
+func (db *PublicRecord) InsertBulletin(bltn *ombutil.Bulletin) (err error) {
 
 	// Start a sql transaction to insert the bulletin and the relevant tags.
 	var tx *sql.Tx
@@ -79,44 +157,18 @@ func (db *PublicRecord) InsertBulletin(bltn *ombproto.Bulletin) (err error) {
 		return err
 	}
 
-	// Insert the Bulletin
-	txid := bltn.Txid.String()
-	blkHash := bltn.Block.String()
-	ath := bltn.Author
-	msg := bltn.Message
-	ts := bltn.Timestamp.Unix()
-	// TODO add proper agruments
-	lt := 45000000
-	lg := 75000000
-	ht := 250
-
-	_, err = tx.Stmt(db.insertBulletin).Exec(txid, blkHash, ath, msg, ts, lt, lg, ht)
+	err = db.insertBulletin(tx, bltn)
 	if err != nil {
-		tx.Rollback()
-		return err
+		return tx.Rollback()
 	}
 
-	// Insert each tag within the bulletin
-	for _, tag := range bltn.Tags() {
-		_, err = tx.Stmt(db.insertTag).Exec(txid, tag.Value)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-
-	// Commit the whole transaction
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit()
 }
 
 // InsertEndorsement commits an endorsement into the public record. It DOES NOT
 // enforce foreign key constraints. This allows endorsements to come in out of
 // order (or in a staggered fashion) endorsing a bulletin that is yet to be
 // mined.
-func (db *PublicRecord) InsertEndorsement(endo ombproto.Endorsement) error {
+func (db *PublicRecord) InsertEndorsement(endo ombutil.Endorsement) error {
 	return nil
 }
