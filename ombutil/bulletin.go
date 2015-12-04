@@ -1,4 +1,4 @@
-package ombproto
+package ombutil
 
 import (
 	"github.com/btcsuite/btcd/chaincfg"
@@ -6,15 +6,15 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombjson"
-	"github.com/soapboxsys/ombudslib/ombproto/ombwire"
+	"github.com/soapboxsys/ombudslib/ombwire"
 )
 
 type Author string
 type Tag string
 
-// UtilBltn is a utility type that holds data and references. The unexported fields can be
+// Bulletin is a utility type that holds data and references. The unexported fields can be
 // nil.
-type UtilBltn struct {
+type Bulletin struct {
 	// pulled from the enclosing tx
 	Author Author
 
@@ -28,10 +28,10 @@ type UtilBltn struct {
 	wireBltn *ombwire.Bulletin
 }
 
-// NewUBltn creates a bulletin using the passed tx as the container of the
+// NewBulletin creates a bulletin using the passed tx as the container of the
 // underlying ombwire.Bulletin. If there is no wire bulletin encoded within
 // the tx then the whole call throws an error.
-func NewUtilBltn(tx *wire.MsgTx, net *chaincfg.Params) (*UtilBltn, error) {
+func NewBulletin(tx *wire.MsgTx, net *chaincfg.Params) (*Bulletin, error) {
 
 	wireBltn, err := ombwire.ParseTx(tx)
 	if err != nil {
@@ -43,7 +43,7 @@ func NewUtilBltn(tx *wire.MsgTx, net *chaincfg.Params) (*UtilBltn, error) {
 		return nil, err
 	}
 
-	bltn := &UtilBltn{
+	bltn := &Bulletin{
 		Author:   author,
 		tx:       tx,
 		wireBltn: wireBltn,
@@ -53,7 +53,7 @@ func NewUtilBltn(tx *wire.MsgTx, net *chaincfg.Params) (*UtilBltn, error) {
 
 }
 
-func (bltn *UtilBltn) AddBlock(blk *btcutil.Block) {
+func (bltn *Bulletin) AddBlock(blk *btcutil.Block) {
 	bltn.block = blk
 }
 
@@ -84,7 +84,7 @@ func parseAuthor(tx *wire.MsgTx, net *chaincfg.Params) (Author, error) {
 
 // Tags returns all of the tags encoded within the message body of the
 // bulletin. Only the first 5 tags are counted and returned.
-func (bltn *UtilBltn) Tags() []Tag {
+func (bltn *Bulletin) Tags() []Tag {
 	t := []Tag{
 		Tag("#foo"),
 		Tag("#bar"),

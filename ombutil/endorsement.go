@@ -1,4 +1,4 @@
-package ombproto
+package ombutil
 
 import (
 	"time"

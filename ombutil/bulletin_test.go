@@ -1,4 +1,4 @@
-package ombproto_test
+package ombutil_test
 
 import (
 	"testing"
