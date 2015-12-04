@@ -2,21 +2,32 @@ package ombjson
 
 // Single Items
 
+type BlkRef struct {
+	Hash      string `json:"hash"`
+	Height    int64  `json:"h"`
+	Timestamp int64  `json:"ts"`
+}
+
 // Holds all the information available about a given Bulletin
-type JsonBltn struct {
-	Txid         string `json:"txid"`
-	Board        string `json:"board,omitempty"`
-	Author       string `json:"author"`
-	Message      string `json:"msg"`
-	Timestamp    int64  `json:"timestamp,omitempty"`
-	Block        string `json:"blk,omitempty"`
-	BlkHeight    uint64 `json:"blkHeight,omitempty"` // NOTE This field may leave us
-	BlkTimestamp int64  `json:"blkTimestamp,omitempty"`
-	BannedReason string `json:"bannedReason,omitempty"`
+type Bulletin struct {
+	Txid         string   `json:"txid"`
+	Author       string   `json:"author"`
+	Message      string   `json:"msg"`
+	Timestamp    int64    `json:"timestamp,omitempty"`
+	Tags         []string `json:"tags",omitempty"`
+	BannedReason string   `json:"bannedReason,omitempty"`
+	BlkRef       *BlkRef  `json:"blkref",omitempty"`
+}
+
+type Endorsement struct {
+	Txid      string  `json:"txid"`      // txid of the endorsements transaction
+	Bid       string  `json:"bid"`       // txid of the endorsed bulletin
+	Timestamp string  `json:"timestamp"` // User generated timestamp
+	BlkRef    *BlkRef `json:"blkref",omitempty`
 }
 
 // Holds meta information about a single unique block
-type JsonBlkHead struct {
+type BlockHead struct {
 	Hash      string `json:"hash"`
 	PrevHash  string `json:"prevHash"`
 	Timestamp int64  `json:"timestamp"`
@@ -25,9 +36,10 @@ type JsonBlkHead struct {
 }
 
 // Contains a block head and the contained bulletins in that block
-type JsonBlkResp struct {
-	Head      *JsonBlkHead `json:"head"`
-	Bulletins []*JsonBltn  `json:"bltns"`
+type Block struct {
+	Head         *BlockHead     `json:"head"`
+	Bulletins    []*Bulletin    `json:"bltns"`
+	Endorsements []*Endorsement `json:"endos"`
 }
 
 // Holds meta information about a single author
@@ -39,8 +51,9 @@ type AuthorSummary struct {
 
 // Contains info about an author and posts by that author
 type AuthorResp struct {
-	Author    *AuthorSummary `json:"author"`
-	Bulletins []*JsonBltn    `json:"bltns"`
+	Author       *AuthorSummary `json:"author"`
+	Bulletins    []*Bulletin    `json:"bltns",omitempty`
+	Endorsements []*Endorsement `json:"endos",omitempty`
 }
 
 // Holds meta information about the server
@@ -64,7 +77,7 @@ type BoardSummary struct {
 // An entire bulletin board that is sorted by default in ascending order
 type WholeBoard struct {
 	Summary   *BoardSummary `json:"summary"`
-	Bulletins []*JsonBltn   `json:"bltns"`
+	Bulletins []*Bulletin   `json:"bltns"`
 }
 
 // A bulletin that is banned by the administrator for some "Reason."
