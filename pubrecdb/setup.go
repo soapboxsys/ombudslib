@@ -79,7 +79,7 @@ func InitDB(path string, params chaincfg.Params) (*PublicRecord, error) {
 	genesisBlk := btcutil.NewBlock(params.GenesisBlock)
 	genesisBlk.SetHeight(0)
 
-	if err := db.InsertBlockHead(genesisBlk); err != nil {
+	if ok, err := db.InsertBlockHead(genesisBlk); !ok {
 		return nil, err
 	}
 

@@ -1,7 +1,9 @@
 package pubrecdb_test
 
 import (
+	"crypto/rand"
 	"fmt"
+	mrand "math/rand"
 	"testing"
 	"time"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombutil"
+	"github.com/soapboxsys/ombudslib/ombwire"
 )
 
 // TestBlockHeadInsert tries to insert a <- b and then c which points nowhere
@@ -29,8 +32,8 @@ func TestBlockHeadInserts(t *testing.T) {
 	blk.SetHeight(0)
 
 	ok, err := db.InsertBlockHead(blk)
-	if ok {
-		t.Fatalf("Genesis blk header should fail\n"+
+	if !ok || err != nil {
+		t.Fatalf("Genesis blk header should fail gracefully\n"+
 			"Instead we saw: %s", err)
 	}
 
@@ -78,7 +81,7 @@ func TestBlockHeadInserts(t *testing.T) {
 	blk = btcutil.NewBlock(&c)
 	blk.SetHeight(99)
 	ok, err = db.InsertBlockHead(blk)
-	if ok {
+	if ok || err != nil {
 		// Sqlite should throw a Foreign Key failure with this text:
 		expected_err := fmt.Errorf("sqlite: SQL error: foreign key constraint failed")
 		t.Fatalf("Blk c header insert should have failed with: %v"+
@@ -94,18 +97,91 @@ func TestBlockHeadInserts(t *testing.T) {
 func TestBulletinInserts(t *testing.T) {
 	db, _ := setupTestDB(false)
 
-	tx := wire.NewMsgTx()
+	wirebltn := fakeWireBltn()
+	genBlk := btcutil.NewBlock(chaincfg.MainNetParams.GenesisBlock)
+	auth := ombutil.Author("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")
 
-	bltn, err := ombutil.NewBulletin(tx, &chaincfg.MainNetParams)
+	gbltn := &ombutil.Bulletin{
+		Tx:     fakeMsgTx(),
+		Author: auth,
+		Wire:   wirebltn,
+		Block:  genBlk,
+	}
+
+	if err := db.InsertBulletin(gbltn); err != nil {
+		t.Fatalf("Inserting bltn(g) failed with: %s", err)
+	}
+
+	// Assert the bltn is stored in the record.
+	cnt, err := db.BulletinCount()
 	if err != nil {
-		t.Fatalf("Creating the bltn failed: %s", err)
+		t.Fatal(err)
+	}
+	if cnt != 1 {
+		t.Fatalf("There should be one bltn in the record not: %d", cnt)
 	}
 
-	// TODO add bulletin with more than five tags
-
-	if err := db.InsertBulletin(bltn); err != nil {
-		t.Fatalf("Inserting bltn a failed with: %s", err)
+	// Remove location from wirebltn
+	wirebltn.Location = nil
+	// Change wirebltn message
+	var m string = "This is #A #Tagged #Message"
+	wirebltn.Message = &m
+	lbltn := &ombutil.Bulletin{
+		Tx:     fakeMsgTx(),
+		Author: auth,
+		Wire:   wirebltn,
+		Block:  genBlk,
 	}
 
-	// TODO assert bltn is stored in ledger.
+	if err := db.InsertBulletin(lbltn); err != nil {
+		t.Fatalf("Inserting bltn(l) failed with: %s", err)
+	}
+
+	cnt, _ = db.BulletinCount()
+	if cnt != 2 {
+		t.Fatalf("There should be 2 bltns in the record not: %d", cnt)
+	}
+}
+
+func fakeWireBltn() *ombwire.Bulletin {
+	var m string = fmt.Sprintf("Climbing is fun: %d", mrand.Int())
+	var ts uint64 = uint64(123741234)
+	var l float64 = float64(0.01)
+
+	bltn := &ombwire.Bulletin{
+		Message:   &m,
+		Timestamp: &ts,
+		Location: &ombwire.Location{
+			Lat: &l,
+			Lon: &l,
+			H:   &l,
+		},
+	}
+	return bltn
+}
+
+// fakeMsgTx creates a MsgTx that has a random component so that it hashes the
+// returned tx hashes to a different value everytime the funciton returns a new
+// tx.
+func fakeMsgTx() *wire.MsgTx {
+	msgTx := wire.NewMsgTx()
+	txIn := wire.TxIn{
+		PreviousOutPoint: wire.OutPoint{
+			Hash:  wire.ShaHash{},
+			Index: 0xffffffff,
+		},
+		SignatureScript: []byte{0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62},
+		Sequence:        0xffffffff,
+	}
+	// Read some random bytes
+	b := make([]byte, 20)
+	// Ignore errors
+	rand.Read(b)
+	txOut := wire.TxOut{
+		Value:    5000000000,
+		PkScript: b,
+	}
+	msgTx.AddTxIn(&txIn)
+	msgTx.AddTxOut(&txOut)
+	return msgTx
 }

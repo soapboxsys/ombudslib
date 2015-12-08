@@ -130,7 +130,8 @@ func (db *PublicRecord) insertBulletin(tx *sql.Tx, bltn *ombutil.Bulletin) (err 
 	ht := loc.GetH()
 
 	// Insert the Bulletin
-	_, err = tx.Stmt(db.insertBulletinStmt).Exec(txid, blkHash, ath, msg, ts, lt, lg, ht)
+	_, err = tx.Stmt(db.insertBulletinStmt).Exec(txid, blkHash, ath, msg,
+		ts, lt, lg, ht)
 	if err != nil {
 		return err
 	}
