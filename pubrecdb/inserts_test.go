@@ -32,7 +32,7 @@ func TestBlockHeadInserts(t *testing.T) {
 	blk.SetHeight(0)
 
 	ok, err := db.InsertBlockHead(blk)
-	if !ok || err != nil {
+	if !ok && err != nil {
 		t.Fatalf("Genesis blk header should fail gracefully\n"+
 			"Instead we saw: %s", err)
 	}
@@ -104,7 +104,7 @@ func TestBulletinInserts(t *testing.T) {
 	gbltn := &ombutil.Bulletin{
 		Tx:     fakeMsgTx(),
 		Author: auth,
-		Wire:   wirebltn,
+		Wire:   &wirebltn,
 		Block:  genBlk,
 	}
 
@@ -129,7 +129,7 @@ func TestBulletinInserts(t *testing.T) {
 	lbltn := &ombutil.Bulletin{
 		Tx:     fakeMsgTx(),
 		Author: auth,
-		Wire:   wirebltn,
+		Wire:   &wirebltn,
 		Block:  genBlk,
 	}
 
@@ -143,12 +143,33 @@ func TestBulletinInserts(t *testing.T) {
 	}
 }
 
-func fakeWireBltn() *ombwire.Bulletin {
+func TestEndorsementInserts(t *testing.T) {
+	db, _ := setupTestDB(false)
+
+	bid := []byte("deadbeefdeadbeefdeadbeef")
+	ts := uint64(3242232232)
+
+	wendo := ombwire.Endorsement{
+		Timestamp: &ts,
+		Bid:       bid,
+	}
+
+	// TODO fill out fields
+	endo := ombutil.Endorsement{
+		Wire: &wendo,
+	}
+
+	if err := db.InsertEndorsement(endo); err != nil {
+		t.Fatalf("Insert failed with: %s", err)
+	}
+}
+
+func fakeWireBltn() ombwire.Bulletin {
 	var m string = fmt.Sprintf("Climbing is fun: %d", mrand.Int())
 	var ts uint64 = uint64(123741234)
 	var l float64 = float64(0.01)
 
-	bltn := &ombwire.Bulletin{
+	bltn := ombwire.Bulletin{
 		Message:   &m,
 		Timestamp: &ts,
 		Location: &ombwire.Location{

@@ -22,7 +22,8 @@ var (
 	`
 
 	insertEndoSql string = `
-		INSERT INTO endorsements (txid, bid, timestamp, author) VALUES ($1, $2, $3, $4)
+		INSERT INTO endorsements (txid, block, bid, timestamp, author) 
+		VALUES ($1, $2, $3, $4, $5)
 	`
 )
 
@@ -42,31 +43,46 @@ func prepareInserts(db *PublicRecord) (err error) {
 		return err
 	}
 
+	db.insertEndorsementStmt, err = db.conn.Prepare(insertEndoSql)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // InsertOmbBlock creates a SQL transaction that commits everything in the block
 // in one go into the sqlite db. This preserves the consistency of the database
-// even in cases where the power fails.
-func (db *PublicRecord) InsertOmbBlock(oblk *ombutil.UBlock) error {
+// even in cases where the power fails. If the insert was succesful the
+// funciton will return (nil, true). If (anything, false) then the insert
+// failed.
+func (db *PublicRecord) InsertOmbBlock(oblk *ombutil.UBlock) (error, bool) {
 
 	// Start a Sql Transaction
 	tx, err := db.conn.Begin()
 
 	err = db.insertBlockHead(tx, oblk.Block)
 	if err != nil {
-		return tx.Rollback()
+		return tx.Rollback(), false
 	}
 
 	// Insert every bulletin in the block
 	for _, bltn := range oblk.Bulletins {
 		err = db.insertBulletin(tx, bltn)
 		if err != nil {
-			return tx.Rollback()
+			return tx.Rollback(), false
 		}
 	}
 
-	return tx.Commit()
+	// Insert every endorsement
+	for _, endo := range oblk.Endorsements {
+		err = db.insertEndorsement(tx, endo)
+		if err != nil {
+			return tx.Rollback(), false
+		}
+	}
+
+	return tx.Commit(), true
 }
 
 func (db *PublicRecord) insertBlockHead(tx *sql.Tx, blk *btcutil.Block) error {
@@ -129,7 +145,7 @@ func (db *PublicRecord) insertBulletin(tx *sql.Tx, bltn *ombutil.Bulletin) (err 
 	lg := loc.GetLon()
 	ht := loc.GetH()
 
-	// Insert the Bulletin
+	// Execute the insert sql statement
 	_, err = tx.Stmt(db.insertBulletinStmt).Exec(txid, blkHash, ath, msg,
 		ts, lt, lg, ht)
 	if err != nil {
@@ -166,10 +182,35 @@ func (db *PublicRecord) InsertBulletin(bltn *ombutil.Bulletin) (err error) {
 	return tx.Commit()
 }
 
+func (db *PublicRecord) insertEndorsement(tx *sql.Tx, endo *ombutil.Endorsement) error {
+	txid := "dingobatsrunatmidnight"
+	blkHash := "asdfasdfasdfasdfadsfdfas"
+	bid := "asfdasdfasdfasdfasdfasd"
+	auth := "1masdf33920sfa02339213"
+	time := 12312422
+
+	_, err := tx.Stmt(db.insertEndorsementStmt).Exec(txid, blkHash, bid, auth, time)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // InsertEndorsement commits an endorsement into the public record. It DOES NOT
 // enforce foreign key constraints. This allows endorsements to come in out of
 // order (or in a staggered fashion) endorsing a bulletin that is yet to be
 // mined.
-func (db *PublicRecord) InsertEndorsement(endo ombutil.Endorsement) error {
-	return nil
+func (db *PublicRecord) InsertEndorsement(endo *ombutil.Endorsement) (err error) {
+	var tx *sql.Tx
+	if tx, err = db.conn.Begin(); err != nil {
+		return err
+	}
+
+	err = db.insertEndorsement(tx, endo)
+	if err != nil {
+		return tx.Rollback()
+	}
+
+	return tx.Commit()
 }

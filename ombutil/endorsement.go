@@ -1,13 +1,16 @@
 package ombutil
 
 import (
-	"time"
-
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
+	"github.com/soapboxsys/ombudslib/ombjson"
+	"github.com/soapboxsys/ombudslib/ombwire"
 )
 
 type Endorsement struct {
-	txid      *wire.ShaHash
-	bid       *wire.ShaHash
-	Timestamp *time.Time
+	Block *btcutil.Block
+	Tx    *wire.MsgTx
+
+	Wire *ombwire.Endorsement
+	Json *ombjson.Endorsement
 }

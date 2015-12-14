@@ -42,6 +42,7 @@ create TABLE blacklist (
 
 CREATE TABLE endorsements (
     txid        TEXT NOT NULL, -- the enclosing transactions SHA hash
+    block       TEXT NOT NULL, -- the containing block hash
     bid         TEXT NOT NULL, -- the endorsed bulletins SHA hash
     timestamp   INT NOT NULL,  -- Unix time
     author      TEXT NOT NULL, -- formatted as a bitcoin address.
