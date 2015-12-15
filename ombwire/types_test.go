@@ -1,16 +1,45 @@
-package ombwire_test
+package ombwire
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/golang/protobuf/proto"
-	"github.com/soapboxsys/ombudslib/ombwire"
 )
 
-func TestWireEndorsement(t *testing.T) {
+func TestEncodeWireType(t *testing.T) {
 
+	var m string = "That is a little too high for me to climb"
+	var ts uint64 = uint64(123741234)
+	var l float64 = float64(322323223)
+
+	orig_bltn := &Bulletin{
+		Message:   &m,
+		Timestamp: &ts,
+		Location: &Location{
+			Lat: &l,
+			Lon: &l,
+			H:   &l,
+		},
+	}
+
+	b, err := encodeWireType(orig_bltn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pm, err := decodeWireType(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	n_bltn := pm.(*Bulletin)
+	if n_bltn.GetMessage() != orig_bltn.GetMessage() {
+		t.Fatalf("Original and final messages do not match!")
+	}
+}
+
+func TestEncodeEndo(t *testing.T) {
 	bid := []byte{
 		0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -19,74 +48,24 @@ func TestWireEndorsement(t *testing.T) {
 	}
 	var ts uint64 = uint64(123741234)
 
-	endo := &ombwire.Endorsement{
+	i_endo := &Endorsement{
 		Bid:       bid,
 		Timestamp: &ts,
 	}
 
-	b, err := proto.Marshal(endo)
+	b, err := encodeWireType(i_endo)
 	if err != nil {
-		t.Fatalf("Endorsement marshal failed: %s", err)
+		t.Fatalf("Endorsement encode failed: %s", err)
 	}
 
-	rendo := &ombwire.Endorsement{}
-	err = proto.Unmarshal(b, rendo)
+	out, err := decodeWireType(b)
 	if err != nil {
-		t.Fatalf("Endorsement unmarshal failed: %s", err)
+		t.Fatalf("Endorsement decode failed: %s", err)
 	}
+	o_endo := out.(*Endorsement)
 
-	if !bytes.Equal(rendo.GetBid(), bid) || ts != rendo.GetTimestamp() {
+	if !bytes.Equal(o_endo.GetBid(), bid) || ts != o_endo.GetTimestamp() {
 		t.Fatalf(spew.Sprintf("Orignial and final values differ. Something went"+
-			" seriously wrong, the raw endo: %b : %b", rendo, rendo.GetBid()))
+			" seriously wrong, the raw endo: %b : %b", o_endo, i_endo))
 	}
-}
-
-// TestWireBulletin takes a bulletin through encoding and decoding and tests to
-// see if the values we expect are indeed there. To do this a wirebulletin is
-// marshaled and unmarshaled via the protobuf library.
-func TestWireBulletin(t *testing.T) {
-
-	var m string = "That is a little too high for me to climb"
-	var ts uint64 = uint64(123741234)
-	var l float64 = float64(322323223)
-
-	bltn := &ombwire.Bulletin{
-		Message:   &m,
-		Timestamp: &ts,
-		Location: &ombwire.Location{
-			Lat: &l,
-			Lon: &l,
-			H:   &l,
-		},
-	}
-
-	bytes, err := proto.Marshal(bltn)
-	if err != nil {
-		t.Fatalf("Marshal failed: %s", err)
-	}
-
-	rbltn := &ombwire.Bulletin{}
-
-	err = proto.Unmarshal(bytes, rbltn)
-	if err != nil {
-		t.Fatalf("Unmarshal failed: %s", err)
-	}
-
-	// Test to see if unmarshaled fields match
-	if m != rbltn.GetMessage() || ts != rbltn.GetTimestamp() ||
-		rbltn.GetLocation().GetLat() != l {
-		t.Fatalf(spew.Sprintf("Orignial and final values differ. Something went"+
-			"seriously wrong, the raw bltn: %s", rbltn))
-	}
-}
-
-// Utilties
-func u(t int) *uint64 {
-	i := uint64(t)
-	return &i
-}
-
-func f(i int) *float64 {
-	f := float64(i)
-	return &f
 }

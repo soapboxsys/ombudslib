@@ -1,12 +1,52 @@
 package ombwire
 
 import (
+	"bytes"
+	"errors"
+
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/golang/protobuf/proto"
 )
+
+func encodeWireType(m proto.Message) ([]byte, error) {
+	empt := []byte{}
+	b := make([]byte, 0, MaxRecordLength)
+
+	buf := bytes.NewBuffer(b)
+
+	buf.Write(Magic[:])
+	// Write the type byte
+	switch m.(type) {
+	case *Bulletin:
+		buf.WriteByte(BulletinMagic)
+	case *Endorsement:
+		buf.WriteByte(EndorsementMagic)
+	default:
+		return empt, errors.New("unsupported type")
+	}
+
+	// Write the length of the protocol buf
+	s := uint64(proto.Size(m))
+	err := writeVarInt(buf, s)
+	if err != nil {
+		return empt, err
+	}
+	if 6+4+s > MaxRecordLength {
+		return empt, ErrRecordTooBig
+	}
+
+	mb, err := proto.Marshal(m)
+	if err != nil {
+		return empt, err
+	}
+	// Write the protobuf Message to the buf
+	buf.Write(mb)
+
+	return buf.Bytes(), nil
+}
 
 // Converts a bulletin into public key scripts for encoding
 func (bltn *Bulletin) TxOuts(toBurn int64, net *chaincfg.Params) ([]*wire.TxOut, error) {
@@ -51,7 +91,7 @@ func (bltn *Bulletin) TxOuts(toBurn int64, net *chaincfg.Params) ([]*wire.TxOut,
 }
 
 // Takes a bulletin and converts into a byte array. A bulletin has two
-// components. The leading 8 magic bytes and then the serialized protocol
+// components. The leading 6 magic byte header and then the serialized protocol
 // buffer that contains the real message 'payload'.
 func (bltn *Bulletin) Bytes() ([]byte, error) {
 	payload := make([]byte, 0)

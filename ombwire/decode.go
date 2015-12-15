@@ -14,10 +14,10 @@ func ParseTx(tx *wire.MsgTx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return extractWireType(b)
+	return decodeWireType(b)
 }
 
-func extractWireType(b []byte) (interface{}, error) {
+func decodeWireType(b []byte) (proto.Message, error) {
 	buf := bytes.NewBuffer(b)
 	if len(b) < 8 {
 		return nil, fmt.Errorf("Malformated tx")
@@ -46,21 +46,21 @@ func extractWireType(b []byte) (interface{}, error) {
 		return nil, ErrRecordTooBig
 	}
 
-	// slice the byte array to the appriopriate length
+	// slice the byte array to the appropriate length
 	r := b[h_len : int(raw_l)+h_len]
 
-	var i interface{} = nil
+	var pm proto.Message
 	// Switch on the provided type to unmarshal the record
 	switch t {
 	case BulletinMagic:
-		i := &Bulletin{}
-		err = proto.Unmarshal(r, i)
+		pm = &Bulletin{}
+		err = proto.Unmarshal(r, pm)
 		if err != nil {
 			return nil, err
 		}
 	case EndorsementMagic:
-		i := &Endorsement{}
-		err = proto.Unmarshal(r, i)
+		pm = &Endorsement{}
+		err = proto.Unmarshal(r, pm)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ func extractWireType(b []byte) (interface{}, error) {
 		return nil, ErrBadWireType
 	}
 
-	return i, nil
+	return pm, nil
 }
 
 // Munges the pushed data of TxOuts into a single universal slice that we can

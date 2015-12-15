@@ -15,7 +15,7 @@ func TestExtractHardErrors(t *testing.T) {
 
 	for i, test := range tests {
 		b := append(Magic[:], test.in...)
-		_, err := extractWireType(b)
+		_, err := decodeWireType(b)
 
 		if err != test.failWith {
 			t.Fatalf("Expected test(%d) to fail with: %s, instead go %s",
@@ -38,7 +38,7 @@ func TestExtractSoftErrors(t *testing.T) {
 
 	for i, test := range tests {
 		b := append(Magic[:], test.in...)
-		_, err := extractWireType(b)
+		_, err := decodeWireType(b)
 
 		if err == nil {
 			t.Fatalf("Expected test(%d) to fail.", i)
