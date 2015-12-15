@@ -21,7 +21,7 @@ func TestReadVarInt(t *testing.T) {
 	for _, tst := range tests {
 		var buf *bytes.Buffer = bytes.NewBuffer(tst.in)
 
-		c, err := readVarInt(buf)
+		c, _, err := readVarInt(buf)
 		if err != nil {
 			t.Fatalf("Read of %x failed with err: %s", tst.in, err)
 		}

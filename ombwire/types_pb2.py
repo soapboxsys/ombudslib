@@ -18,78 +18,11 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='types.proto',
   package='ombwire',
-  serialized_pb=_b('\n\x0btypes.proto\x12\x07ombwire\"\x8d\x01\n\x06Record\x12\"\n\x04type\x18\x01 \x02(\x0e\x32\x14.ombwire.Record.Type\x12\x1f\n\x04\x62ltn\x18\x02 \x01(\x0b\x32\x11.ombwire.Bulletin\x12\"\n\x04\x65ndo\x18\x03 \x01(\x0b\x32\x14.ombwire.Endorsement\"\x1a\n\x04Type\x12\x08\n\x04\x42LTN\x10\x01\x12\x08\n\x04\x45NDO\x10\x02\"S\n\x08\x42ulletin\x12\x0f\n\x07message\x18\x01 \x02(\t\x12\x11\n\ttimestamp\x18\x02 \x02(\x04\x12#\n\x08location\x18\x03 \x01(\x0b\x32\x11.ombwire.Location\"/\n\x08Location\x12\x0b\n\x03lat\x18\x01 \x02(\x01\x12\x0b\n\x03lon\x18\x02 \x02(\x01\x12\t\n\x01h\x18\x03 \x02(\x01\"-\n\x0b\x45ndorsement\x12\x0b\n\x03\x62id\x18\x01 \x02(\x0c\x12\x11\n\ttimestamp\x18\x02 \x02(\x04\x42.\n\x1asystems.soapbox.wirerecordB\x10OmbudsWireProtos')
+  serialized_pb=_b('\n\x0btypes.proto\x12\x07ombwire\"S\n\x08\x42ulletin\x12\x0f\n\x07message\x18\x01 \x02(\t\x12\x11\n\ttimestamp\x18\x02 \x02(\x04\x12#\n\x08location\x18\x03 \x01(\x0b\x32\x11.ombwire.Location\"/\n\x08Location\x12\x0b\n\x03lat\x18\x01 \x02(\x01\x12\x0b\n\x03lon\x18\x02 \x02(\x01\x12\t\n\x01h\x18\x03 \x02(\x01\"-\n\x0b\x45ndorsement\x12\x0b\n\x03\x62id\x18\x01 \x02(\x0c\x12\x11\n\ttimestamp\x18\x02 \x02(\x04\x42.\n\x1asystems.soapbox.wirerecordB\x10OmbudsWireProtos')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
-
-_RECORD_TYPE = _descriptor.EnumDescriptor(
-  name='Type',
-  full_name='ombwire.Record.Type',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='BLTN', index=0, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='ENDO', index=1, number=2,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=140,
-  serialized_end=166,
-)
-_sym_db.RegisterEnumDescriptor(_RECORD_TYPE)
-
-
-_RECORD = _descriptor.Descriptor(
-  name='Record',
-  full_name='ombwire.Record',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='type', full_name='ombwire.Record.type', index=0,
-      number=1, type=14, cpp_type=8, label=2,
-      has_default_value=False, default_value=1,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='bltn', full_name='ombwire.Record.bltn', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='endo', full_name='ombwire.Record.endo', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-    _RECORD_TYPE,
-  ],
-  options=None,
-  is_extendable=False,
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=25,
-  serialized_end=166,
-)
 
 
 _BULLETIN = _descriptor.Descriptor(
@@ -131,8 +64,8 @@ _BULLETIN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=168,
-  serialized_end=251,
+  serialized_start=24,
+  serialized_end=107,
 )
 
 
@@ -175,8 +108,8 @@ _LOCATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=253,
-  serialized_end=300,
+  serialized_start=109,
+  serialized_end=156,
 )
 
 
@@ -212,26 +145,14 @@ _ENDORSEMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=302,
-  serialized_end=347,
+  serialized_start=158,
+  serialized_end=203,
 )
 
-_RECORD.fields_by_name['type'].enum_type = _RECORD_TYPE
-_RECORD.fields_by_name['bltn'].message_type = _BULLETIN
-_RECORD.fields_by_name['endo'].message_type = _ENDORSEMENT
-_RECORD_TYPE.containing_type = _RECORD
 _BULLETIN.fields_by_name['location'].message_type = _LOCATION
-DESCRIPTOR.message_types_by_name['Record'] = _RECORD
 DESCRIPTOR.message_types_by_name['Bulletin'] = _BULLETIN
 DESCRIPTOR.message_types_by_name['Location'] = _LOCATION
 DESCRIPTOR.message_types_by_name['Endorsement'] = _ENDORSEMENT
-
-Record = _reflection.GeneratedProtocolMessageType('Record', (_message.Message,), dict(
-  DESCRIPTOR = _RECORD,
-  __module__ = 'types_pb2'
-  # @@protoc_insertion_point(class_scope:ombwire.Record)
-  ))
-_sym_db.RegisterMessage(Record)
 
 Bulletin = _reflection.GeneratedProtocolMessageType('Bulletin', (_message.Message,), dict(
   DESCRIPTOR = _BULLETIN,

@@ -9,86 +9,88 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func CreateWireType(tx *wire.MsgTx) interface{} {
-	r, err := ParseTx(tx)
-	if err != nil {
-		return nil
-	}
-
-	switch r.GetType().String() {
-	case "BLTN":
-		return r.GetEndo()
-	case "ENDO":
-		return r.GetBltn()
-	}
-
-	return nil
-}
-
-func ParseTx(tx *wire.MsgTx) (*Record, error) {
-	r := &Record{}
-
-	var err error
-	// Bootleg solution, but if unmarshal fails slice txout and try again until we can try no more or it fails
-	for j := len(tx.TxOut); j > 1; j-- {
-		rel_txouts := tx.TxOut[:j] // slice off change txouts
-		bytes, err := extractData(rel_txouts)
-		if err != nil {
-			continue
-		}
-
-		err = proto.Unmarshal(bytes, r)
-		if err == nil {
-			// No errors. Therefore we found a good decode.
-			break
-		}
-	}
+func ParseTx(tx *wire.MsgTx) (interface{}, error) {
+	b, err := extractData(tx.TxOut[:])
 	if err != nil {
 		return nil, err
 	}
+	return extractWireType(b)
+}
 
-	return r, nil
+func extractWireType(b []byte) (interface{}, error) {
+	buf := bytes.NewBuffer(b)
+	if len(b) < 8 {
+		return nil, fmt.Errorf("Malformated tx")
+	}
+
+	// Check the magic byte.
+	m := make([]byte, 6)
+	buf.Read(m)
+	if !bytes.Equal(m, Magic[:]) {
+		return nil, fmt.Errorf("TxOut does not start with magic prefix")
+	}
+
+	// Extract the record type
+	t, _ := buf.ReadByte()
+
+	// Read the length and n bytes read
+	raw_l, n, err := readVarInt(buf)
+	if err != nil {
+		return nil, fmt.Errorf("Parse failed: %s", err)
+	}
+
+	h_len := 6 + 1 + n // The total length of the header.
+
+	// Assert that the length provided is reasonable
+	if raw_l > MaxRecordLength || raw_l > uint64(len(b)-h_len) {
+		return nil, ErrRecordTooBig
+	}
+
+	// slice the byte array to the appriopriate length
+	r := b[h_len : int(raw_l)+h_len]
+
+	var i interface{} = nil
+	// Switch on the provided type to unmarshal the record
+	switch t {
+	case BulletinMagic:
+		i := &Bulletin{}
+		err = proto.Unmarshal(r, i)
+		if err != nil {
+			return nil, err
+		}
+	case EndorsementMagic:
+		i := &Endorsement{}
+		err = proto.Unmarshal(r, i)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, ErrBadWireType
+	}
+
+	return i, nil
 }
 
 // Munges the pushed data of TxOuts into a single universal slice that we can
 // use as a whole message.
 func extractData(txOuts []*wire.TxOut) ([]byte, error) {
-
 	alldata := make([]byte, 0)
+	empt := []byte{}
 
-	first := true
 	for _, txout := range txOuts {
-
 		pushMatrix, err := txscript.PushedData(txout.PkScript)
 		if err != nil {
-			return alldata, err
+			return empt, err
 		}
+
 		for _, pushedD := range pushMatrix {
 			if len(pushedD) != 20 {
-				return alldata, fmt.Errorf("Pushed Data is not the right length")
+				return empt, fmt.Errorf("Pushed Data is not the right length")
 			}
-
 			alldata = append(alldata, pushedD...)
-			if first {
-				// Check to see if magic bytes match and slice accordingly
-				first = false
-				lenM := len(Magic)
-				if !bytes.Equal(alldata[:lenM], Magic[:]) {
-					return alldata, fmt.Errorf("Magic bytes don't match, Saw: [% x]", alldata[:lenM])
-				}
-				alldata = alldata[lenM:]
-			}
-
 		}
 
 	}
-	// trim trailing zeros
-	for j := len(alldata) - 1; j > 0; j-- {
-		b := alldata[j]
-		if b != 0x00 {
-			alldata = alldata[:j+1]
-			break
-		}
-	}
+
 	return alldata, nil
 }

@@ -2,16 +2,27 @@ package ombwire
 
 import (
 	"bytes"
+	"errors"
 
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 )
 
 var (
+	MaxRecordLength uint64 = 75000 // Records can be up to 75KB in size.
+
 	// The delimiter that sits at the front of every bulletin.
-	Magic = [8]byte{
-		0x42, 0x52, 0x45, 0x54, 0x48, 0x52, 0x45, 0x4e, /* | BRETHREN | */
+	Magic = [6]byte{
+		0x4f, 0x4d, 0x42, 0x55, 0x44, 0x53, // | OMBUDS |
 	}
+
+	// The magic bytes that determine the type of the recorded when it is
+	// encoded or decoded.
+	BulletinMagic    byte = 0x01
+	EndorsementMagic byte = 0x02
+
+	ErrRecordTooBig error = errors.New("record size too big")
+	ErrBadWireType  error = errors.New("No such record type")
 )
 
 // HasMagic takes the passed TX and determines if it has the magic bytes

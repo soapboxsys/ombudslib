@@ -6,7 +6,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/protobuf/proto"
-	"github.com/soapboxsys/ombudslib/ombproto/ombwire"
+	"github.com/soapboxsys/ombudslib/ombwire"
 )
 
 func TestWireEndorsement(t *testing.T) {
