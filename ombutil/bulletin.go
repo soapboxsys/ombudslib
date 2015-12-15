@@ -31,29 +31,18 @@ type Bulletin struct {
 	Wire *ombwire.Bulletin
 }
 
-// NewBulletin creates a bulletin using the passed tx as the container of the
-// underlying ombwire.Bulletin. If there is no wire bulletin encoded within
-// the tx then the whole call throws an error.
-func NewBulletin(tx *wire.MsgTx, net *chaincfg.Params) (*Bulletin, error) {
+func NewBltn(w *ombwire.Bulletin, tx *btcutil.Tx, blk *btcutil.Block) (*Bulletin, error) {
+	// validate wire tx msg
 
-	wireBltn, err := ombwire.ParseTx(tx)
-	if err != nil {
-		return nil, err
-	}
+	// Parse author
 
-	author, err := parseAuthor(tx, net)
-	if err != nil {
-		return nil, err
-	}
-
+	// return type
 	bltn := &Bulletin{
-		Author: author,
-		Tx:     tx,
-		Wire:   wireBltn,
+		Tx:    tx.MsgTx(),
+		Block: blk,
+		Wire:  w,
 	}
-
 	return bltn, nil
-
 }
 
 func (bltn *Bulletin) AddBlock(blk *btcutil.Block) {

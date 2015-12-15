@@ -8,6 +8,1004 @@ public final class OmbudsWireProtos {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
+  public interface RecordOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ombwire.Record)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>required .ombwire.Record.Type type = 1;</code>
+     *
+     * <pre>
+     * Identifies which type is filled in.
+     * </pre>
+     */
+    boolean hasType();
+    /**
+     * <code>required .ombwire.Record.Type type = 1;</code>
+     *
+     * <pre>
+     * Identifies which type is filled in.
+     * </pre>
+     */
+    systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type getType();
+
+    /**
+     * <code>optional .ombwire.Bulletin bltn = 2;</code>
+     *
+     * <pre>
+     * Only one of the following may be filled in.
+     * </pre>
+     */
+    boolean hasBltn();
+    /**
+     * <code>optional .ombwire.Bulletin bltn = 2;</code>
+     *
+     * <pre>
+     * Only one of the following may be filled in.
+     * </pre>
+     */
+    systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin getBltn();
+    /**
+     * <code>optional .ombwire.Bulletin bltn = 2;</code>
+     *
+     * <pre>
+     * Only one of the following may be filled in.
+     * </pre>
+     */
+    systems.soapbox.wirerecord.OmbudsWireProtos.BulletinOrBuilder getBltnOrBuilder();
+
+    /**
+     * <code>optional .ombwire.Endorsement endo = 3;</code>
+     */
+    boolean hasEndo();
+    /**
+     * <code>optional .ombwire.Endorsement endo = 3;</code>
+     */
+    systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement getEndo();
+    /**
+     * <code>optional .ombwire.Endorsement endo = 3;</code>
+     */
+    systems.soapbox.wirerecord.OmbudsWireProtos.EndorsementOrBuilder getEndoOrBuilder();
+  }
+  /**
+   * Protobuf type {@code ombwire.Record}
+   *
+   * <pre>
+   * Wrapping container for all other message types
+   * </pre>
+   */
+  public static final class Record extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:ombwire.Record)
+      RecordOrBuilder {
+    // Use Record.newBuilder() to construct.
+    private Record(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private Record(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final Record defaultInstance;
+    public static Record getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public Record getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private Record(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+              systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type value = systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(1, rawValue);
+              } else {
+                bitField0_ |= 0x00000001;
+                type_ = value;
+              }
+              break;
+            }
+            case 18: {
+              systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000002) == 0x00000002)) {
+                subBuilder = bltn_.toBuilder();
+              }
+              bltn_ = input.readMessage(systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(bltn_);
+                bltn_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000002;
+              break;
+            }
+            case 26: {
+              systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000004) == 0x00000004)) {
+                subBuilder = endo_.toBuilder();
+              }
+              endo_ = input.readMessage(systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(endo_);
+                endo_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000004;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return systems.soapbox.wirerecord.OmbudsWireProtos.internal_static_ombwire_Record_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return systems.soapbox.wirerecord.OmbudsWireProtos.internal_static_ombwire_Record_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              systems.soapbox.wirerecord.OmbudsWireProtos.Record.class, systems.soapbox.wirerecord.OmbudsWireProtos.Record.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<Record> PARSER =
+        new com.google.protobuf.AbstractParser<Record>() {
+      public Record parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new Record(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Record> getParserForType() {
+      return PARSER;
+    }
+
+    /**
+     * Protobuf enum {@code ombwire.Record.Type}
+     */
+    public enum Type
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>BLTN = 1;</code>
+       */
+      BLTN(0, 1),
+      /**
+       * <code>ENDO = 2;</code>
+       */
+      ENDO(1, 2),
+      ;
+
+      /**
+       * <code>BLTN = 1;</code>
+       */
+      public static final int BLTN_VALUE = 1;
+      /**
+       * <code>ENDO = 2;</code>
+       */
+      public static final int ENDO_VALUE = 2;
+
+
+      public final int getNumber() { return value; }
+
+      public static Type valueOf(int value) {
+        switch (value) {
+          case 1: return BLTN;
+          case 2: return ENDO;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<Type>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<Type>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<Type>() {
+              public Type findValueByNumber(int number) {
+                return Type.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return systems.soapbox.wirerecord.OmbudsWireProtos.Record.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final Type[] VALUES = values();
+
+      public static Type valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private Type(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:ombwire.Record.Type)
+    }
+
+    private int bitField0_;
+    public static final int TYPE_FIELD_NUMBER = 1;
+    private systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type type_;
+    /**
+     * <code>required .ombwire.Record.Type type = 1;</code>
+     *
+     * <pre>
+     * Identifies which type is filled in.
+     * </pre>
+     */
+    public boolean hasType() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required .ombwire.Record.Type type = 1;</code>
+     *
+     * <pre>
+     * Identifies which type is filled in.
+     * </pre>
+     */
+    public systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type getType() {
+      return type_;
+    }
+
+    public static final int BLTN_FIELD_NUMBER = 2;
+    private systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin bltn_;
+    /**
+     * <code>optional .ombwire.Bulletin bltn = 2;</code>
+     *
+     * <pre>
+     * Only one of the following may be filled in.
+     * </pre>
+     */
+    public boolean hasBltn() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional .ombwire.Bulletin bltn = 2;</code>
+     *
+     * <pre>
+     * Only one of the following may be filled in.
+     * </pre>
+     */
+    public systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin getBltn() {
+      return bltn_;
+    }
+    /**
+     * <code>optional .ombwire.Bulletin bltn = 2;</code>
+     *
+     * <pre>
+     * Only one of the following may be filled in.
+     * </pre>
+     */
+    public systems.soapbox.wirerecord.OmbudsWireProtos.BulletinOrBuilder getBltnOrBuilder() {
+      return bltn_;
+    }
+
+    public static final int ENDO_FIELD_NUMBER = 3;
+    private systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement endo_;
+    /**
+     * <code>optional .ombwire.Endorsement endo = 3;</code>
+     */
+    public boolean hasEndo() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional .ombwire.Endorsement endo = 3;</code>
+     */
+    public systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement getEndo() {
+      return endo_;
+    }
+    /**
+     * <code>optional .ombwire.Endorsement endo = 3;</code>
+     */
+    public systems.soapbox.wirerecord.OmbudsWireProtos.EndorsementOrBuilder getEndoOrBuilder() {
+      return endo_;
+    }
+
+    private void initFields() {
+      type_ = systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type.BLTN;
+      bltn_ = systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.getDefaultInstance();
+      endo_ = systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.getDefaultInstance();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      if (!hasType()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (hasBltn()) {
+        if (!getBltn().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      if (hasEndo()) {
+        if (!getEndo().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeEnum(1, type_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeMessage(2, bltn_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeMessage(3, endo_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, type_.getNumber());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, bltn_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, endo_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static systems.soapbox.wirerecord.OmbudsWireProtos.Record parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(systems.soapbox.wirerecord.OmbudsWireProtos.Record prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code ombwire.Record}
+     *
+     * <pre>
+     * Wrapping container for all other message types
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:ombwire.Record)
+        systems.soapbox.wirerecord.OmbudsWireProtos.RecordOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return systems.soapbox.wirerecord.OmbudsWireProtos.internal_static_ombwire_Record_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return systems.soapbox.wirerecord.OmbudsWireProtos.internal_static_ombwire_Record_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                systems.soapbox.wirerecord.OmbudsWireProtos.Record.class, systems.soapbox.wirerecord.OmbudsWireProtos.Record.Builder.class);
+      }
+
+      // Construct using systems.soapbox.wirerecord.OmbudsWireProtos.Record.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getBltnFieldBuilder();
+          getEndoFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        type_ = systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type.BLTN;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        if (bltnBuilder_ == null) {
+          bltn_ = systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.getDefaultInstance();
+        } else {
+          bltnBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000002);
+        if (endoBuilder_ == null) {
+          endo_ = systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.getDefaultInstance();
+        } else {
+          endoBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return systems.soapbox.wirerecord.OmbudsWireProtos.internal_static_ombwire_Record_descriptor;
+      }
+
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Record getDefaultInstanceForType() {
+        return systems.soapbox.wirerecord.OmbudsWireProtos.Record.getDefaultInstance();
+      }
+
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Record build() {
+        systems.soapbox.wirerecord.OmbudsWireProtos.Record result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Record buildPartial() {
+        systems.soapbox.wirerecord.OmbudsWireProtos.Record result = new systems.soapbox.wirerecord.OmbudsWireProtos.Record(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.type_ = type_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        if (bltnBuilder_ == null) {
+          result.bltn_ = bltn_;
+        } else {
+          result.bltn_ = bltnBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        if (endoBuilder_ == null) {
+          result.endo_ = endo_;
+        } else {
+          result.endo_ = endoBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof systems.soapbox.wirerecord.OmbudsWireProtos.Record) {
+          return mergeFrom((systems.soapbox.wirerecord.OmbudsWireProtos.Record)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(systems.soapbox.wirerecord.OmbudsWireProtos.Record other) {
+        if (other == systems.soapbox.wirerecord.OmbudsWireProtos.Record.getDefaultInstance()) return this;
+        if (other.hasType()) {
+          setType(other.getType());
+        }
+        if (other.hasBltn()) {
+          mergeBltn(other.getBltn());
+        }
+        if (other.hasEndo()) {
+          mergeEndo(other.getEndo());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasType()) {
+          
+          return false;
+        }
+        if (hasBltn()) {
+          if (!getBltn().isInitialized()) {
+            
+            return false;
+          }
+        }
+        if (hasEndo()) {
+          if (!getEndo().isInitialized()) {
+            
+            return false;
+          }
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        systems.soapbox.wirerecord.OmbudsWireProtos.Record parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (systems.soapbox.wirerecord.OmbudsWireProtos.Record) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type type_ = systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type.BLTN;
+      /**
+       * <code>required .ombwire.Record.Type type = 1;</code>
+       *
+       * <pre>
+       * Identifies which type is filled in.
+       * </pre>
+       */
+      public boolean hasType() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required .ombwire.Record.Type type = 1;</code>
+       *
+       * <pre>
+       * Identifies which type is filled in.
+       * </pre>
+       */
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type getType() {
+        return type_;
+      }
+      /**
+       * <code>required .ombwire.Record.Type type = 1;</code>
+       *
+       * <pre>
+       * Identifies which type is filled in.
+       * </pre>
+       */
+      public Builder setType(systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000001;
+        type_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required .ombwire.Record.Type type = 1;</code>
+       *
+       * <pre>
+       * Identifies which type is filled in.
+       * </pre>
+       */
+      public Builder clearType() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        type_ = systems.soapbox.wirerecord.OmbudsWireProtos.Record.Type.BLTN;
+        onChanged();
+        return this;
+      }
+
+      private systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin bltn_ = systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin, systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.Builder, systems.soapbox.wirerecord.OmbudsWireProtos.BulletinOrBuilder> bltnBuilder_;
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public boolean hasBltn() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin getBltn() {
+        if (bltnBuilder_ == null) {
+          return bltn_;
+        } else {
+          return bltnBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public Builder setBltn(systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin value) {
+        if (bltnBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          bltn_ = value;
+          onChanged();
+        } else {
+          bltnBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public Builder setBltn(
+          systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.Builder builderForValue) {
+        if (bltnBuilder_ == null) {
+          bltn_ = builderForValue.build();
+          onChanged();
+        } else {
+          bltnBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public Builder mergeBltn(systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin value) {
+        if (bltnBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) == 0x00000002) &&
+              bltn_ != systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.getDefaultInstance()) {
+            bltn_ =
+              systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.newBuilder(bltn_).mergeFrom(value).buildPartial();
+          } else {
+            bltn_ = value;
+          }
+          onChanged();
+        } else {
+          bltnBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000002;
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public Builder clearBltn() {
+        if (bltnBuilder_ == null) {
+          bltn_ = systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.getDefaultInstance();
+          onChanged();
+        } else {
+          bltnBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.Builder getBltnBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return getBltnFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      public systems.soapbox.wirerecord.OmbudsWireProtos.BulletinOrBuilder getBltnOrBuilder() {
+        if (bltnBuilder_ != null) {
+          return bltnBuilder_.getMessageOrBuilder();
+        } else {
+          return bltn_;
+        }
+      }
+      /**
+       * <code>optional .ombwire.Bulletin bltn = 2;</code>
+       *
+       * <pre>
+       * Only one of the following may be filled in.
+       * </pre>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin, systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.Builder, systems.soapbox.wirerecord.OmbudsWireProtos.BulletinOrBuilder> 
+          getBltnFieldBuilder() {
+        if (bltnBuilder_ == null) {
+          bltnBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin, systems.soapbox.wirerecord.OmbudsWireProtos.Bulletin.Builder, systems.soapbox.wirerecord.OmbudsWireProtos.BulletinOrBuilder>(
+                  getBltn(),
+                  getParentForChildren(),
+                  isClean());
+          bltn_ = null;
+        }
+        return bltnBuilder_;
+      }
+
+      private systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement endo_ = systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement, systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.Builder, systems.soapbox.wirerecord.OmbudsWireProtos.EndorsementOrBuilder> endoBuilder_;
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public boolean hasEndo() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement getEndo() {
+        if (endoBuilder_ == null) {
+          return endo_;
+        } else {
+          return endoBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public Builder setEndo(systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement value) {
+        if (endoBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          endo_ = value;
+          onChanged();
+        } else {
+          endoBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public Builder setEndo(
+          systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.Builder builderForValue) {
+        if (endoBuilder_ == null) {
+          endo_ = builderForValue.build();
+          onChanged();
+        } else {
+          endoBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public Builder mergeEndo(systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement value) {
+        if (endoBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) == 0x00000004) &&
+              endo_ != systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.getDefaultInstance()) {
+            endo_ =
+              systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.newBuilder(endo_).mergeFrom(value).buildPartial();
+          } else {
+            endo_ = value;
+          }
+          onChanged();
+        } else {
+          endoBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public Builder clearEndo() {
+        if (endoBuilder_ == null) {
+          endo_ = systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.getDefaultInstance();
+          onChanged();
+        } else {
+          endoBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.Builder getEndoBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return getEndoFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      public systems.soapbox.wirerecord.OmbudsWireProtos.EndorsementOrBuilder getEndoOrBuilder() {
+        if (endoBuilder_ != null) {
+          return endoBuilder_.getMessageOrBuilder();
+        } else {
+          return endo_;
+        }
+      }
+      /**
+       * <code>optional .ombwire.Endorsement endo = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement, systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.Builder, systems.soapbox.wirerecord.OmbudsWireProtos.EndorsementOrBuilder> 
+          getEndoFieldBuilder() {
+        if (endoBuilder_ == null) {
+          endoBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement, systems.soapbox.wirerecord.OmbudsWireProtos.Endorsement.Builder, systems.soapbox.wirerecord.OmbudsWireProtos.EndorsementOrBuilder>(
+                  getEndo(),
+                  getParentForChildren(),
+                  isClean());
+          endo_ = null;
+        }
+        return endoBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:ombwire.Record)
+    }
+
+    static {
+      defaultInstance = new Record(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:ombwire.Record)
+  }
+
   public interface BulletinOrBuilder extends
       // @@protoc_insertion_point(interface_extends:ombwire.Bulletin)
       com.google.protobuf.MessageOrBuilder {
@@ -1955,6 +2953,11 @@ public final class OmbudsWireProtos {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_ombwire_Record_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_ombwire_Record_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_ombwire_Bulletin_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -1978,13 +2981,16 @@ public final class OmbudsWireProtos {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\013types.proto\022\007ombwire\"S\n\010Bulletin\022\017\n\007me" +
-      "ssage\030\001 \002(\t\022\021\n\ttimestamp\030\002 \002(\004\022#\n\010locati" +
-      "on\030\003 \001(\0132\021.ombwire.Location\"/\n\010Location\022" +
-      "\013\n\003lat\030\001 \002(\001\022\013\n\003lon\030\002 \002(\001\022\t\n\001h\030\003 \002(\001\"-\n\013" +
-      "Endorsement\022\013\n\003bid\030\001 \002(\014\022\021\n\ttimestamp\030\002 " +
-      "\002(\004B.\n\032systems.soapbox.wirerecordB\020Ombud" +
-      "sWireProtos"
+      "\n\013types.proto\022\007ombwire\"\215\001\n\006Record\022\"\n\004typ" +
+      "e\030\001 \002(\0162\024.ombwire.Record.Type\022\037\n\004bltn\030\002 " +
+      "\001(\0132\021.ombwire.Bulletin\022\"\n\004endo\030\003 \001(\0132\024.o" +
+      "mbwire.Endorsement\"\032\n\004Type\022\010\n\004BLTN\020\001\022\010\n\004" +
+      "ENDO\020\002\"S\n\010Bulletin\022\017\n\007message\030\001 \002(\t\022\021\n\tt" +
+      "imestamp\030\002 \002(\004\022#\n\010location\030\003 \001(\0132\021.ombwi" +
+      "re.Location\"/\n\010Location\022\013\n\003lat\030\001 \002(\001\022\013\n\003" +
+      "lon\030\002 \002(\001\022\t\n\001h\030\003 \002(\001\"-\n\013Endorsement\022\013\n\003b" +
+      "id\030\001 \002(\014\022\021\n\ttimestamp\030\002 \002(\004B.\n\032systems.s" +
+      "oapbox.wirerecordB\020OmbudsWireProtos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -1998,20 +3004,26 @@ public final class OmbudsWireProtos {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_ombwire_Bulletin_descriptor =
+    internal_static_ombwire_Record_descriptor =
       getDescriptor().getMessageTypes().get(0);
+    internal_static_ombwire_Record_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_ombwire_Record_descriptor,
+        new java.lang.String[] { "Type", "Bltn", "Endo", });
+    internal_static_ombwire_Bulletin_descriptor =
+      getDescriptor().getMessageTypes().get(1);
     internal_static_ombwire_Bulletin_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_ombwire_Bulletin_descriptor,
         new java.lang.String[] { "Message", "Timestamp", "Location", });
     internal_static_ombwire_Location_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_ombwire_Location_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_ombwire_Location_descriptor,
         new java.lang.String[] { "Lat", "Lon", "H", });
     internal_static_ombwire_Endorsement_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_ombwire_Endorsement_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_ombwire_Endorsement_descriptor,

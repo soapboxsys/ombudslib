@@ -10,13 +10,13 @@ type BlkRef struct {
 
 // Holds all the information available about a given Bulletin
 type Bulletin struct {
-	Txid         string   `json:"txid"`
-	Author       string   `json:"author"`
-	Message      string   `json:"msg"`
-	Timestamp    int64    `json:"timestamp,omitempty"`
-	Tags         []string `json:"tags",omitempty"`
-	BannedReason string   `json:"bannedReason,omitempty"`
-	BlkRef       *BlkRef  `json:"blkref",omitempty"`
+	Txid      string   `json:"txid"`
+	Author    string   `json:"author"`
+	Message   string   `json:"msg"`
+	Timestamp int64    `json:"timestamp,omitempty"`
+	Tags      []string `json:"tags",omitempty"`
+	NumEndos  int32    `json:"numEndos"`
+	BlkRef    *BlkRef  `json:"blkref",omitempty"`
 }
 
 type Endorsement struct {
@@ -78,10 +78,4 @@ type BoardSummary struct {
 type WholeBoard struct {
 	Summary   *BoardSummary `json:"summary"`
 	Bulletins []*Bulletin   `json:"bltns"`
-}
-
-// A bulletin that is banned by the administrator for some "Reason."
-type BannedBltn struct {
-	Txid   string `json:"txid"`
-	Reason string `json:"reason"`
 }

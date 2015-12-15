@@ -11,6 +11,7 @@ It is generated from these files:
 	types.proto
 
 It has these top-level messages:
+	Record
 	Bulletin
 	Location
 	Endorsement
@@ -25,6 +26,73 @@ import math "math"
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+type Record_Type int32
+
+const (
+	Record_BLTN Record_Type = 1
+	Record_ENDO Record_Type = 2
+)
+
+var Record_Type_name = map[int32]string{
+	1: "BLTN",
+	2: "ENDO",
+}
+var Record_Type_value = map[string]int32{
+	"BLTN": 1,
+	"ENDO": 2,
+}
+
+func (x Record_Type) Enum() *Record_Type {
+	p := new(Record_Type)
+	*p = x
+	return p
+}
+func (x Record_Type) String() string {
+	return proto.EnumName(Record_Type_name, int32(x))
+}
+func (x *Record_Type) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(Record_Type_value, data, "Record_Type")
+	if err != nil {
+		return err
+	}
+	*x = Record_Type(value)
+	return nil
+}
+
+type Record struct {
+	// Identifies which type is filled in.
+	Type *Record_Type `protobuf:"varint,1,req,name=type,enum=ombwire.Record_Type" json:"type,omitempty"`
+	// Only one of the following may be filled in.
+	Bltn             *Bulletin    `protobuf:"bytes,2,opt,name=bltn" json:"bltn,omitempty"`
+	Endo             *Endorsement `protobuf:"bytes,3,opt,name=endo" json:"endo,omitempty"`
+	XXX_unrecognized []byte       `json:"-"`
+}
+
+func (m *Record) Reset()         { *m = Record{} }
+func (m *Record) String() string { return proto.CompactTextString(m) }
+func (*Record) ProtoMessage()    {}
+
+func (m *Record) GetType() Record_Type {
+	if m != nil && m.Type != nil {
+		return *m.Type
+	}
+	return Record_BLTN
+}
+
+func (m *Record) GetBltn() *Bulletin {
+	if m != nil {
+		return m.Bltn
+	}
+	return nil
+}
+
+func (m *Record) GetEndo() *Endorsement {
+	if m != nil {
+		return m.Endo
+	}
+	return nil
+}
 
 type Bulletin struct {
 	Message          *string   `protobuf:"bytes,1,req,name=message" json:"message,omitempty"`
@@ -113,4 +181,8 @@ func (m *Endorsement) GetTimestamp() uint64 {
 		return *m.Timestamp
 	}
 	return 0
+}
+
+func init() {
+	proto.RegisterEnum("ombwire.Record_Type", Record_Type_name, Record_Type_value)
 }

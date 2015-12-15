@@ -7,6 +7,16 @@ package ombwire;
 option java_package = "systems.soapbox.wirerecord";
 option java_outer_classname = "OmbudsWireProtos";
 
+message Record { // Wrapping container for all other message types
+    enum Type { BLTN = 1; ENDO = 2; }
+    // Identifies which type is filled in.
+    required Type type = 1;
+
+    // Only one of the following may be filled in.
+    optional Bulletin bltn = 2;
+    optional Endorsement endo = 3;
+}
+
 message Bulletin {
     required string message     = 1;
     required uint64 timestamp   = 2; // Seconds since 00:00:00 Jan 1, 1970
