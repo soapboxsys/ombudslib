@@ -11,7 +11,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func encodeWireType(m proto.Message) ([]byte, error) {
+func EncodeWireType(m proto.Message) ([]byte, error) {
 	empt := []byte{}
 	b := make([]byte, 0, MaxRecordLength)
 
@@ -50,13 +50,14 @@ func encodeWireType(m proto.Message) ([]byte, error) {
 
 // Converts a bulletin into public key scripts for encoding
 func (bltn *Bulletin) TxOuts(toBurn int64, net *chaincfg.Params) ([]*wire.TxOut, error) {
+	empt := []*wire.TxOut{}
 
-	rawbytes, err := proto.Marshal(bltn)
+	rawbytes, err := EncodeWireType(bltn)
 	if err != nil {
-		return []*wire.TxOut{}, err
+		return empt, err
 	}
 
-	numcuts, _ := bltn.NumOuts()
+	numcuts := numOuts(len(rawbytes))
 
 	cuts := make([][]byte, numcuts, numcuts)
 	for i := 0; i < numcuts; i++ {
@@ -74,11 +75,11 @@ func (bltn *Bulletin) TxOuts(toBurn int64, net *chaincfg.Params) ([]*wire.TxOut,
 
 		fakeaddr, err := btcutil.NewAddressPubKeyHash(cut, net)
 		if err != nil {
-			return []*wire.TxOut{}, err
+			return empt, err
 		}
 		pkscript, err := txscript.PayToAddrScript(fakeaddr)
 		if err != nil {
-			return []*wire.TxOut{}, err
+			return empt, err
 		}
 		txout := &wire.TxOut{
 			PkScript: pkscript,
@@ -90,34 +91,11 @@ func (bltn *Bulletin) TxOuts(toBurn int64, net *chaincfg.Params) ([]*wire.TxOut,
 	return txouts, nil
 }
 
-// Takes a bulletin and converts into a byte array. A bulletin has two
-// components. The leading 6 magic byte header and then the serialized protocol
-// buffer that contains the real message 'payload'.
-func (bltn *Bulletin) Bytes() ([]byte, error) {
-	payload := make([]byte, 0)
-
-	pbytes, err := proto.Marshal(bltn)
-	if err != nil {
-		return payload, err
-	}
-
-	payload = append(payload, Magic[:]...)
-	payload = append(payload, pbytes...)
-	return payload, nil
-}
-
-// Returns the number of txouts needed to encode this bulletin
-func (bltn *Bulletin) NumOuts() (int, error) {
-
-	rawbytes, err := bltn.Bytes()
-	if err != nil {
-		return 0, err
-	}
-
-	numouts := len(rawbytes) / 20
-	if len(rawbytes)%20 != 0 {
+// numOuts returns the number of P2PKH outs needed to encode this bulletin
+func numOuts(length int) int {
+	numouts := length / 20
+	if length%20 != 0 {
 		numouts += 1
 	}
-
-	return numouts, nil
+	return numouts
 }

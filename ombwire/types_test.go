@@ -2,6 +2,8 @@ package ombwire
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -23,12 +25,12 @@ func TestEncodeWireType(t *testing.T) {
 		},
 	}
 
-	b, err := encodeWireType(orig_bltn)
+	b, err := EncodeWireType(orig_bltn)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pm, err := decodeWireType(b)
+	pm, err := DecodeWireType(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,12 +55,12 @@ func TestEncodeEndo(t *testing.T) {
 		Timestamp: &ts,
 	}
 
-	b, err := encodeWireType(i_endo)
+	b, err := EncodeWireType(i_endo)
 	if err != nil {
 		t.Fatalf("Endorsement encode failed: %s", err)
 	}
 
-	out, err := decodeWireType(b)
+	out, err := DecodeWireType(b)
 	if err != nil {
 		t.Fatalf("Endorsement decode failed: %s", err)
 	}
@@ -68,4 +70,21 @@ func TestEncodeEndo(t *testing.T) {
 		t.Fatalf(spew.Sprintf("Orignial and final values differ. Something went"+
 			" seriously wrong, the raw endo: %b : %b", o_endo, i_endo))
 	}
+}
+
+func TestExample_GenerateBltnBytes(t *testing.T) {
+	var m string = "Hello, world!"
+	var ts uint64 = uint64(12345678)
+
+	bltn := &Bulletin{
+		Message:   &m,
+		Timestamp: &ts,
+	}
+
+	b, _ := EncodeWireType(bltn)
+	j, _ := json.Marshal(bltn)
+
+	fmt.Printf("JSON\t\t: %s\n", j)
+	fmt.Printf("Header\t\t: % x\n", b[:8])
+	fmt.Printf("Wirerecord\t: % x\n", b[8:])
 }

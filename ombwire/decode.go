@@ -14,10 +14,10 @@ func ParseTx(tx *wire.MsgTx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return decodeWireType(b)
+	return DecodeWireType(b)
 }
 
-func decodeWireType(b []byte) (proto.Message, error) {
+func DecodeWireType(b []byte) (proto.Message, error) {
 	buf := bytes.NewBuffer(b)
 	if len(b) < 8 {
 		return nil, fmt.Errorf("Malformated tx")
