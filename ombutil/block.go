@@ -26,8 +26,8 @@ func CreateUBlock(blk *btcutil.Block) *UBlock {
 			continue
 		}
 
-		w := ombwire.CreateWireType(tx.MsgTx())
-		if w == nil {
+		w, err := ombwire.ParseTx(tx.MsgTx())
+		if w == nil || err != nil {
 			continue
 		}
 

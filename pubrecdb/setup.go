@@ -13,13 +13,13 @@ import (
 )
 
 // The overarching struct that contains everything needed for a connection to a
-// sqlite db containing the public record
+// sqlite db containing the public record.
 type PublicRecord struct {
 	conn *sql.DB
 	// Read only connection for filtering
 	roConn *sqlite3.Conn
 
-	// Precompiled SQL for ombprotorest
+	// Precompiled SQL selects
 	selectTxid        *sql.Stmt
 	selectBlockHead   *sql.Stmt
 	selectBlockBltns  *sql.Stmt
@@ -40,6 +40,12 @@ type PublicRecord struct {
 	insertBulletinStmt    *sql.Stmt
 	insertTagStmt         *sql.Stmt
 	insertEndorsementStmt *sql.Stmt
+
+	// Precompiled deletes
+	deleteBlockStmt *sql.Stmt
+
+	// Utility queries
+	blockIsTipStmt *sql.Stmt
 }
 
 // Creates a DB at the desired path or drops an existing one and recreates a
@@ -135,6 +141,10 @@ func prepareDB(db *PublicRecord) (*PublicRecord, error) {
 
 	if err := prepareInserts(db); err != nil {
 		return nil, fmt.Errorf("Preparing inserts failed: %v", err)
+	}
+
+	if err := prepareDeletes(db); err != nil {
+		return nil, fmt.Errorf("Preparing deletes failed: %v", err)
 	}
 
 	return db, nil

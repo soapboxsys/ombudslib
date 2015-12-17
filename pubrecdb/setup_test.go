@@ -2,6 +2,7 @@ package pubrecdb_test
 
 import (
 	"os"
+	"path"
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg"
@@ -14,12 +15,9 @@ func SetupTestDB(add_rows bool) (*PublicRecord, error) {
 }
 
 func setupTestDB(add_rows bool) (*PublicRecord, error) {
-
-	dbpath := os.Getenv("GOPATH") + "/src/github.com/soapboxsys/ombudslib/pubrecdb/test/test.db"
-
-	db, err := InitDB(dbpath, chaincfg.MainNetParams)
+	db, err := InitDB(getPath(), &chaincfg.MainNetParams)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	if add_rows {
@@ -39,10 +37,16 @@ func TestEmptySetupDB(t *testing.T) {
 }
 
 func TestSetupDB(t *testing.T) {
-	_, err := setupTestDB(true)
+	_, err := InitDB(getPath(), &chaincfg.MainNetParams)
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func getPath() (s string) {
+	s = "/src/github.com/soapboxsys/ombudslib/pubrecdb/test/test.db"
+	s = path.Join(os.Getenv("GOPATH"), s)
+	return s
 }
 
 // setupTestInsertBlocks adds an initials set of blocks to the test db that

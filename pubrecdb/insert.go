@@ -122,7 +122,6 @@ func (db *PublicRecord) InsertBlockHead(blk *btcutil.Block) (bool, error) {
 	}
 
 	if err = tx.Commit(); err != nil {
-		return false, err
 	}
 
 	return true, nil
@@ -166,20 +165,25 @@ func (db *PublicRecord) insertBulletin(tx *sql.Tx, bltn *ombutil.Bulletin) (err 
 // InsertBulletin takes a bulletins and inserts it into the pubrecord. A
 // ombproto.Bulletin is used here instead of a wire.Bulletin because of the
 // high level utilities offered by the ombproto type.
-func (db *PublicRecord) InsertBulletin(bltn *ombutil.Bulletin) (err error) {
+func (db *PublicRecord) InsertBulletin(bltn *ombutil.Bulletin) (bool, error) {
 
 	// Start a sql transaction to insert the bulletin and the relevant tags.
 	var tx *sql.Tx
+	var err error
 	if tx, err = db.conn.Begin(); err != nil {
-		return err
+		return false, err
 	}
 
 	err = db.insertBulletin(tx, bltn)
 	if err != nil {
-		return tx.Rollback()
+		return false, tx.Rollback()
 	}
 
-	return tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (db *PublicRecord) insertEndorsement(tx *sql.Tx, endo *ombutil.Endorsement) error {

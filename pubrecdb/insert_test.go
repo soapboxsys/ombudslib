@@ -108,7 +108,7 @@ func TestBulletinInsert(t *testing.T) {
 		Block:  genBlk,
 	}
 
-	if err := db.InsertBulletin(gbltn); err != nil {
+	if ok, err := db.InsertBulletin(gbltn); err != nil || !ok {
 		t.Fatalf("Inserting bltn(g) failed with: %s", err)
 	}
 
@@ -133,7 +133,7 @@ func TestBulletinInsert(t *testing.T) {
 		Block:  genBlk,
 	}
 
-	if err := db.InsertBulletin(lbltn); err != nil {
+	if ok, err := db.InsertBulletin(lbltn); err != nil || !ok {
 		t.Fatalf("Inserting bltn(l) failed with: %s", err)
 	}
 

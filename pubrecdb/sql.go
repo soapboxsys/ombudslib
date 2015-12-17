@@ -9,7 +9,7 @@ func createSql() string {
 CREATE TABLE blocks (
     hash        TEXT NOT NULL, 
     prevhash    TEXT UNIQUE NOT NULL, -- Unique constraint prevents forks.
-    height      INT,        -- The number of blocks between this one and the genesis block.
+    height      INT  UNIQUE NOT NULL, -- The number of blocks between this one and the genesis block.
     timestamp   INT,        -- The timestamp stored as an epoch time
     -- Extra fields added to reproduce hash of block
     version     INT,
@@ -33,7 +33,7 @@ CREATE TABLE bulletins (
 
 
     PRIMARY KEY(txid), 
-    FOREIGN KEY(block) REFERENCES blocks(hash)
+    FOREIGN KEY(block) REFERENCES blocks(hash) ON DELETE CASCADE
 );
 
 CREATE TABLE endorsements (
@@ -44,11 +44,14 @@ CREATE TABLE endorsements (
     author      TEXT NOT NULL, -- formatted as a bitcoin address.
 
     PRIMARY KEY(txid)
+    FOREIGN KEY(block) REFERENCES blocks(hash) ON DELETE CASCADE
 );
 
 CREATE TABLE tags (
     txid   TEXT,
-    value  TEXT
+    value  TEXT,
+
+    FOREIGN KEY(txid) REFERENCES bulletins(txid) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_tags ON tags (value);
