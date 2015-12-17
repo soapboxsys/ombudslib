@@ -118,7 +118,11 @@ func (bltn *Bulletin) Tags() []Tag {
 	return ParseTags(m)
 }
 
-var tagBreaks []rune = []rune{' ', '\f', '\n', '\r', '\t', '\v', '\u00a0', '\u1680', '\u180e', '\u2000', '-', '\u200a', '\u2028', '\u2029', '\u202f', '\u205f', '\u3000', '\ufeff'}
+var tagBreaks []rune = []rune{
+	' ', '\f', '\n', '\r', '\t', '\v', '\u00a0', '\u1680',
+	'\u180e', '\u2000', '\u200a', '\u2028', '\u2029',
+	'\u202f', '\u205f', '\u3000', '\ufeff',
+}
 
 // isTagBreak returns true if the passed rune is one of the acknowledge tag
 // seperator characters.

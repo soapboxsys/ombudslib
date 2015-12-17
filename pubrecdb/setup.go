@@ -45,7 +45,7 @@ type PublicRecord struct {
 // Creates a DB at the desired path or drops an existing one and recreates a
 // new empty one at the path. The bitcoin network is needed because the genesis
 // block must be inserted first for the DB to initialized properly.
-func InitDB(path string, params chaincfg.Params) (*PublicRecord, error) {
+func InitDB(path string, params *chaincfg.Params) (*PublicRecord, error) {
 	path = filepath.Clean(path)
 	// Check if the file exists and remove it if it does.
 	if _, err := os.Stat(path); err == nil {

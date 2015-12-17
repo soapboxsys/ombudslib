@@ -2,25 +2,24 @@ package pubrecdb
 
 import (
 	"errors"
-
-	_ "code.google.com/p/go-sqlite/go1/sqlite3"
 )
 
 var (
 	ErrBltnCensored error = errors.New("Bulletin is withheld for some reason")
 
+	// TODO verify order.
 	txidSql string = `
-		SELECT bulletins.txid, author, board, message, bulletins.timestamp, block, blocks.timestamp, blocks.height, blacklist.reason
+		SELECT bulletins.txid, author, message, bulletins.timestamp, block, blocks.timestamp, blocks.height, count(endorsements)
 	`
 
-	// Used by GetJsonBltn
+	// Used by GetJsonBltn XX
 	selectTxidSql string = txidSql +
 		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
-		LEFT JOIN blacklist ON bulletins.txid = blacklist.txid
+		LEFT JOIN endorsements ON bulletins.txid = endorsements.bid
 		WHERE bulletins.txid = $1
 	`
-	// Used by GetJsonBlock
+	// Used by GetJsonBlock XX
 	selectBlockHeadSql string = `
 		SELECT hash, prevhash, height, blocks.timestamp, count(bulletins.txid) 
 		FROM blocks LEFT JOIN bulletins ON blocks.hash = bulletins.block
@@ -33,7 +32,7 @@ var (
 		WHERE blocks.hash = $1
 	`
 
-	// Used by GetJsonAuthor
+	// Used by GetJsonAuthor XX
 	selectAuthorSql string = `
 		SELECT author, count(*), min(blocks.timestamp)
 		FROM bulletins LEFT JOIN blocks on bulletins.block = blocks.hash
@@ -41,7 +40,7 @@ var (
 		ORDER BY blocks.timestamp ASC
 	`
 
-	// Used by GetJsonAuthor
+	// Used by GetJsonAuthor XX
 	selectAuthorBltnsSql string = txidSql +
 		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -54,7 +53,7 @@ var (
 		SELECT txid, reason from blacklist
 	`
 
-	// Used by GetWholeBoard
+	// Used by GetWholeBoard XX
 	selectBoardSumSql string = `
 		SELECT board, count(*), last_bltn.bltn_ts, first_bltn.blk_ts, author 
 		FROM bulletins, 
@@ -68,7 +67,7 @@ var (
 		LIMIT 1
 	`
 
-	// Used by GetWholeBoard
+	// Used by GetWholeBoard XX
 	selectBoardBltnsSql string = txidSql +
 		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -77,7 +76,7 @@ var (
 		ORDER BY blocks.timestamp, bulletins.timestamp
 	`
 
-	// Used by GetAllBoards
+	// Used by GetAllBoards XX
 	selectAllBoardsSql string = `
 		SELECT board, count(*), max(bulletins.timestamp), blocks.timestamp, author
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
@@ -85,7 +84,7 @@ var (
 		ORDER BY blocks.timestamp ASC
 	`
 
-	// Used by GetRecentBltns
+	// Used by GetRecentBltns XX
 	selectRecentConfSql string = txidSql +
 		`
 		FROM bulletins, (
@@ -97,7 +96,7 @@ var (
 		ORDER BY blocks.timestamp DESC
 	`
 
-	// Used by GetUnconfirmed
+	// Used by GetUnconfirmed XX
 	selectUnconfirmedSql string = `
 		SELECT bulletins.txid, author, board, message, bulletins.timestamp, NULL, NULL, NULL, blacklist.reason
 		FROM bulletins
@@ -106,7 +105,7 @@ var (
 		ORDER BY bulletins.timestamp
 	`
 
-	// Used by GetBlocksByDay
+	// Used by GetBlocksByDay XX
 	selectBlksByDaySql string = `
 		SELECT hash, prevhash, height, blocks.timestamp, count(bulletins.txid) 
 		FROM blocks LEFT JOIN bulletins ON bulletins.block = blocks.hash
@@ -115,7 +114,7 @@ var (
 		ORDER BY height
 	`
 
-	// Used by LatestBlkAndBltn
+	// Used by LatestBlkAndBltn XX
 	selectDBStatusSql string = `
 		SELECT l_blk.timestamp, l_bltn.timestamp, height
 		FROM (SELECT max(blocks.timestamp) AS timestamp FROM blocks) as l_blk,
@@ -123,7 +122,7 @@ var (
 			 (SELECT max(blocks.height) as height FROM blocks)
 	`
 
-	// Used by GetAllAuthors
+	// Used by GetAllAuthors XX
 	selectAllAuthors string = `
 	SELECT author, count(*), min(blocks.timestamp)
 		FROM bulletins LEFT JOIN blocks on bulletins.block = blocks.hash

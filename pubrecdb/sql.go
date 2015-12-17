@@ -36,16 +36,6 @@ CREATE TABLE bulletins (
     FOREIGN KEY(block) REFERENCES blocks(hash)
 );
 
--- The point of the blacklist is to highlight the fact that editorial control is still possible,
--- but now the choice is given explicity to the third party.
-create TABLE blacklist ( 
-    txid    TEXT,
-    reason  TEXT NOT NULL,
-
-    PRIMARY KEY(txid),
-    FOREIGN KEY(txid) REFERENCES bulletins(txid)
-);
-
 CREATE TABLE endorsements (
     txid        TEXT NOT NULL, -- the enclosing transactions SHA hash
     block       TEXT NOT NULL, -- the containing block hash

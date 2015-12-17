@@ -16,7 +16,7 @@ import (
 
 // TestBlockHeadInsert tries to insert a <- b and then c which points nowhere
 // and should fail.
-func TestBlockHeadInserts(t *testing.T) {
+func TestBlockHeadInsert(t *testing.T) {
 	db, _ := setupTestDB(false)
 
 	bogus_h := wire.ShaHash([wire.HashSize]byte{
@@ -90,11 +90,11 @@ func TestBlockHeadInserts(t *testing.T) {
 
 }
 
-// TestBulletinInserts asserts that the sql inserts and accompanying logic that
+// TestBulletinInsert asserts that the sql inserts and accompanying logic that
 // inserts bulletins into the public records is functioning properly. After
 // inserting it examines the state of the test.db to see if the bulletins (and
 // tags) are inserted properly.
-func TestBulletinInserts(t *testing.T) {
+func TestBulletinInsert(t *testing.T) {
 	db, _ := setupTestDB(false)
 
 	wirebltn := fakeWireBltn()
@@ -143,7 +143,7 @@ func TestBulletinInserts(t *testing.T) {
 	}
 }
 
-func TestEndorsementInserts(t *testing.T) {
+func TestEndorsementInsert(t *testing.T) {
 	db, _ := setupTestDB(false)
 
 	bid := []byte("deadbeefdeadbeefdeadbeef")
@@ -159,7 +159,7 @@ func TestEndorsementInserts(t *testing.T) {
 		Wire: &wendo,
 	}
 
-	if err := db.InsertEndorsement(endo); err != nil {
+	if err := db.InsertEndorsement(&endo); err != nil {
 		t.Fatalf("Insert failed with: %s", err)
 	}
 }
