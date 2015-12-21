@@ -23,31 +23,34 @@ func DecodeWireType(b []byte) (proto.Message, error) {
 		return nil, fmt.Errorf("Malformated tx")
 	}
 
-	// Check the magic byte.
-	m := make([]byte, 6)
-	buf.Read(m)
-	if !bytes.Equal(m, Magic[:]) {
-		return nil, fmt.Errorf("TxOut does not start with magic prefix")
+	// Find the magic bytes and read past them
+	i := bytes.Index(b, Magic[:])
+	if i < 0 {
+		return nil, fmt.Errorf("No magic prefix")
 	}
+	buf.Next(i + len(Magic))
 
 	// Extract the record type
-	t, _ := buf.ReadByte()
+	t, err := buf.ReadByte()
+	if err != nil {
+		return nil, err
+	}
 
-	// Read the length and n bytes read
-	raw_l, n, err := readVarInt(buf)
+	// Read the length and return the _ bytes used by the var int
+	raw_l, _, err := readVarInt(buf)
 	if err != nil {
 		return nil, fmt.Errorf("Parse failed: %s", err)
 	}
 
-	h_len := 6 + 1 + n // The total length of the header.
+	//h_len := len(Magic) + 1 + n // The total length of the header.
 
 	// Assert that the length provided is reasonable
-	if raw_l > MaxRecordLength || raw_l > uint64(len(b)-h_len) {
+	if raw_l > MaxRecordLength || raw_l > uint64(buf.Len()) {
 		return nil, ErrRecordTooBig
 	}
 
 	// slice the byte array to the appropriate length
-	r := b[h_len : int(raw_l)+h_len]
+	r := buf.Next(int(raw_l))
 
 	var pm proto.Message
 	// Switch on the provided type to unmarshal the record
