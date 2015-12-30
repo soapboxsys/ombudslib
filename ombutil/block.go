@@ -51,3 +51,11 @@ func CreateUBlock(blk *btcutil.Block) *UBlock {
 
 	return ublk
 }
+
+var RecordStartHeight int32 = 391051
+
+// PastPegDate determines if the passed block was created after the target peg
+// date after which entries can be added to the public record.
+func PastPegDate(blk *btcutil.Block) bool {
+	return blk.Height() > RecordStartHeight
+}
