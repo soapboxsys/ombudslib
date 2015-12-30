@@ -8,7 +8,6 @@ import (
 )
 
 var (
-	ErrNoSuchBlock error = errors.New("no such block in db")
 	ErrBlockNotTip error = errors.New("block is not chain tip")
 
 	// This stmt causes a foreign key cascade.
@@ -39,29 +38,29 @@ func prepareDeletes(db *PublicRecord) (err error) {
 
 // DeleteBlockTip deletes the block header and any dependent data. It will throw
 // a ErrBlockNotTip  error if you try to delete any block that is not the tip.
-func (db *PublicRecord) DeleteBlockTip(sha wire.ShaHash) (bool, error) {
+func (db *PublicRecord) DeleteBlockTip(sha *wire.ShaHash) (error, bool) {
 
 	var tx *sql.Tx
 	var err error
 	if tx, err = db.conn.Begin(); err != nil {
-		return false, err
+		return err, false
 	}
 
 	// Check to see if the block is the chain tip
-	err = db.blockIsTip(tx, &sha)
+	err = db.blockIsTip(tx, sha)
 	if err != nil {
 		tx.Rollback()
-		return false, err // Would rather pass back error that causes the rollback
+		return err, false // Would rather pass back error that causes the rollback
 	}
 
 	// Delete the block head which cascades deletes through the db
 	_, err = tx.Stmt(db.deleteBlockStmt).Exec(sha.String())
 	if err != nil {
-		return false, tx.Rollback()
+		return tx.Rollback(), false
 	}
 
-	// May have to check if commit had no error.
-	return true, tx.Commit()
+	// Have to check that commit did not fail
+	return tx.Commit(), true
 }
 
 // blockIsTip determines if the block is in the db and if it is the current

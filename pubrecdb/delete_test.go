@@ -43,13 +43,14 @@ func TestDeleteBlockTip(t *testing.T) {
 	}
 
 	// Try to delete the genesis block.
-	ok, err = db.DeleteBlockTip(genBlk.BlockSha())
+	gh := genBlk.BlockSha()
+	ok, err = db.DeleteBlockTip(&gh)
 	if ok || err != pubrecdb.ErrBlockNotTip {
 		t.Fatalf("Blk(genBlk) delete needs to fail: %v, %v", ok, err)
 	}
 
 	// Delete the current block tip
-	ok, err = db.DeleteBlockTip(*a.Sha())
+	ok, err = db.DeleteBlockTip(a.Sha())
 	if !ok || err != nil {
 		t.Fatalf("Blk(a) delete failed: %v, %v", ok, err)
 	}

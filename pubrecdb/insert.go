@@ -51,12 +51,12 @@ func prepareInserts(db *PublicRecord) (err error) {
 	return nil
 }
 
-// InsertOmbBlock creates a SQL transaction that commits everything in the block
+// InsertUBlock creates a SQL transaction that commits everything in the block
 // in one go into the sqlite db. This preserves the consistency of the database
 // even in cases where the power fails. If the insert was succesful the
 // funciton will return (nil, true). If (anything, false) then the insert
 // failed.
-func (db *PublicRecord) InsertOmbBlock(oblk *ombutil.UBlock) (error, bool) {
+func (db *PublicRecord) InsertUBlock(oblk *ombutil.UBlock) (error, bool) {
 
 	// Start a Sql Transaction
 	tx, err := db.conn.Begin()
