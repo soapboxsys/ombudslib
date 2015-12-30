@@ -1,5 +1,7 @@
 // A script that retrieves a given txid from the insight api and attempts to
 // decode it as an Ombuds record. It throws an error if it is unsuccessful.
+// Usage is simple: build the program and then run it with:
+// > ./decode -testnet 65d5a50a90255447973f5b32966c0c80192e80817e38f9b45ff7ddaea16cbbe5
 package main
 
 import (
