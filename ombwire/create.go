@@ -1,5 +1,7 @@
 package ombwire
 
+import "time"
+
 // This file contains helpful functions that extend the generated protobuf
 // types.
 
@@ -22,4 +24,8 @@ func NewLocation(lat, lon, h float64) *Location {
 		H:   &h,
 	}
 	return loc
+}
+
+func NewBulletinFromStr(msg string) *Bulletin {
+	return NewBulletin(msg, uint64(time.Now().Unix()), nil)
 }

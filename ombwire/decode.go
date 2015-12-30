@@ -87,9 +87,6 @@ func extractData(txOuts []*wire.TxOut) ([]byte, error) {
 		}
 
 		for _, pushedD := range pushMatrix {
-			if len(pushedD) != 20 {
-				return empt, fmt.Errorf("Pushed Data is not the right length")
-			}
 			alldata = append(alldata, pushedD...)
 		}
 
