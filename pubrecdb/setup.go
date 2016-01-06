@@ -7,9 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcutil"
-
 	"github.com/mxk/go-sqlite/sqlite3"
+	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
 // The overarching struct that contains everything needed for a connection to a
@@ -81,11 +80,9 @@ func InitDB(path string, params *chaincfg.Params) (*PublicRecord, error) {
 		return nil, err
 	}
 
-	// Insert the net's Genesis block
-	genesisBlk := btcutil.NewBlock(params.GenesisBlock)
-	genesisBlk.SetHeight(0)
-
-	if ok, err := db.InsertBlockHead(genesisBlk); !ok {
+	// Insert the pegged starting block
+	pegBlk := peg.GetStartBlock()
+	if ok, err := db.InsertBlockHead(pegBlk); !ok {
 		return nil, err
 	}
 

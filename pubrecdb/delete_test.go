@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
+	"github.com/soapboxsys/ombudslib/ombwire/peg"
 	"github.com/soapboxsys/ombudslib/pubrecdb"
 )
 
@@ -21,12 +21,12 @@ func TestDeleteBlockTip(t *testing.T) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F,
 	})
 
-	genBlk := chaincfg.MainNetParams.GenesisBlock
+	pegSha := peg.GetStartBlock().Sha()
 
 	blk := wire.MsgBlock{
 		Header: wire.BlockHeader{
 			Version:    1,
-			PrevBlock:  genBlk.BlockSha(),
+			PrevBlock:  *pegSha,
 			MerkleRoot: bogus_h,
 			Timestamp:  time.Unix(1297000000, 0),
 			Bits:       0x1d00ffff,
@@ -43,10 +43,9 @@ func TestDeleteBlockTip(t *testing.T) {
 	}
 
 	// Try to delete the genesis block.
-	gh := genBlk.BlockSha()
-	ok, err = db.DeleteBlockTip(&gh)
+	ok, err = db.DeleteBlockTip(pegSha)
 	if ok || err != pubrecdb.ErrBlockNotTip {
-		t.Fatalf("Blk(genBlk) delete needs to fail: %v, %v", ok, err)
+		t.Fatalf("Blk(pegBlk) delete needs to fail: %v, %v", ok, err)
 	}
 
 	// Delete the current block tip

@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombutil"
 	"github.com/soapboxsys/ombudslib/ombwire"
+	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
 // TestBlockHeadInsert tries to insert a <- b and then c which points nowhere
@@ -26,14 +26,13 @@ func TestBlockHeadInsert(t *testing.T) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F,
 	})
 
-	// Test the insertion of a genesis block
-	a := chaincfg.MainNetParams.GenesisBlock
-	blk := btcutil.NewBlock(a)
-	blk.SetHeight(0)
+	// Test the insertion of the peg block
+	blk := peg.GetStartBlock()
+	a := blk.MsgBlock()
 
 	ok, err := db.InsertBlockHead(blk)
 	if !ok && err != nil {
-		t.Fatalf("Genesis blk header should fail gracefully\n"+
+		t.Fatalf("Peg blk header should fail gracefully\n"+
 			"Instead we saw: %s", err)
 	}
 
@@ -43,7 +42,7 @@ func TestBlockHeadInsert(t *testing.T) {
 		t.Fatalf("blk cnt failed with: %s", err)
 	}
 	if cnt != 1 {
-		t.Fatalf("After gen insert blk cnt should be 1. It is: %d", cnt)
+		t.Fatalf("After peg insert blk cnt should be 1. It is: %d", cnt)
 	}
 
 	// Test the insertion of a linked block
@@ -98,14 +97,14 @@ func TestBulletinInsert(t *testing.T) {
 	db, _ := setupTestDB(false)
 
 	wirebltn := fakeWireBltn()
-	genBlk := btcutil.NewBlock(chaincfg.MainNetParams.GenesisBlock)
+	pegBlk := peg.GetStartBlock()
 	auth := ombutil.Author("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")
 
 	gbltn := &ombutil.Bulletin{
 		Tx:     fakeMsgTx(),
 		Author: auth,
 		Wire:   &wirebltn,
-		Block:  genBlk,
+		Block:  pegBlk,
 	}
 
 	if ok, err := db.InsertBulletin(gbltn); err != nil || !ok {
@@ -130,7 +129,7 @@ func TestBulletinInsert(t *testing.T) {
 		Tx:     fakeMsgTx(),
 		Author: auth,
 		Wire:   &wirebltn,
-		Block:  genBlk,
+		Block:  pegBlk,
 	}
 
 	if ok, err := db.InsertBulletin(lbltn); err != nil || !ok {

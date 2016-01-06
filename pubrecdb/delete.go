@@ -38,29 +38,32 @@ func prepareDeletes(db *PublicRecord) (err error) {
 
 // DeleteBlockTip deletes the block header and any dependent data. It will throw
 // a ErrBlockNotTip  error if you try to delete any block that is not the tip.
-func (db *PublicRecord) DeleteBlockTip(sha *wire.ShaHash) (error, bool) {
+func (db *PublicRecord) DeleteBlockTip(sha *wire.ShaHash) (bool, error) {
 
 	var tx *sql.Tx
 	var err error
 	if tx, err = db.conn.Begin(); err != nil {
-		return err, false
+		return false, err
 	}
 
 	// Check to see if the block is the chain tip
 	err = db.blockIsTip(tx, sha)
 	if err != nil {
 		tx.Rollback()
-		return err, false // Would rather pass back error that causes the rollback
+		return false, err // Would rather pass back error that causes the rollback
 	}
 
 	// Delete the block head which cascades deletes through the db
 	_, err = tx.Stmt(db.deleteBlockStmt).Exec(sha.String())
 	if err != nil {
-		return tx.Rollback(), false
+		return false, tx.Rollback()
 	}
 
 	// Have to check that commit did not fail
-	return tx.Commit(), true
+	if err = tx.Commit(); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // blockIsTip determines if the block is in the db and if it is the current

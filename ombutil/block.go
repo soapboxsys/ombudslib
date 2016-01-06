@@ -3,6 +3,7 @@ package ombutil
 import (
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombwire"
+	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
 // A helper struct that contains all of the data relevant to ombuds in a
@@ -52,10 +53,8 @@ func CreateUBlock(blk *btcutil.Block) *UBlock {
 	return ublk
 }
 
-var RecordStartHeight int32 = 391051
-
 // PastPegDate determines if the passed block was created after the target peg
 // date after which entries can be added to the public record.
 func PastPegDate(blk *btcutil.Block) bool {
-	return blk.Height() > RecordStartHeight
+	return blk.Height() > peg.StartHeight
 }
