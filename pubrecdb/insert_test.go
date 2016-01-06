@@ -30,7 +30,7 @@ func TestBlockHeadInsert(t *testing.T) {
 	blk := peg.GetStartBlock()
 	a := blk.MsgBlock()
 
-	ok, err := db.InsertBlockHead(blk)
+	err, ok := db.InsertBlockHead(blk)
 	if !ok && err != nil {
 		t.Fatalf("Peg blk header should fail gracefully\n"+
 			"Instead we saw: %s", err)
@@ -60,7 +60,7 @@ func TestBlockHeadInsert(t *testing.T) {
 	blk = btcutil.NewBlock(&b)
 	blk.SetHeight(1)
 
-	ok, err = db.InsertBlockHead(blk)
+	err, ok = db.InsertBlockHead(blk)
 	if !ok {
 		t.Fatalf("Blk b header insert failed: %v:", err)
 	}
@@ -79,7 +79,7 @@ func TestBlockHeadInsert(t *testing.T) {
 
 	blk = btcutil.NewBlock(&c)
 	blk.SetHeight(99)
-	ok, err = db.InsertBlockHead(blk)
+	err, ok = db.InsertBlockHead(blk)
 	if ok || err != nil {
 		// Sqlite should throw a Foreign Key failure with this text:
 		expected_err := fmt.Errorf("sqlite: SQL error: foreign key constraint failed")
@@ -107,7 +107,7 @@ func TestBulletinInsert(t *testing.T) {
 		Block:  pegBlk,
 	}
 
-	if ok, err := db.InsertBulletin(gbltn); err != nil || !ok {
+	if err, ok := db.InsertBulletin(gbltn); err != nil || !ok {
 		t.Fatalf("Inserting bltn(g) failed with: %s", err)
 	}
 
@@ -132,7 +132,7 @@ func TestBulletinInsert(t *testing.T) {
 		Block:  pegBlk,
 	}
 
-	if ok, err := db.InsertBulletin(lbltn); err != nil || !ok {
+	if err, ok := db.InsertBulletin(lbltn); err != nil || !ok {
 		t.Fatalf("Inserting bltn(l) failed with: %s", err)
 	}
 

@@ -37,19 +37,19 @@ func TestDeleteBlockTip(t *testing.T) {
 	a := btcutil.NewBlock(&blk)
 	a.SetHeight(2)
 
-	ok, err := db.InsertBlockHead(a)
+	err, ok := db.InsertBlockHead(a)
 	if !ok || err != nil {
 		t.Fatalf("Blk(a) header insert failed: %v, %v", ok, err)
 	}
 
 	// Try to delete the genesis block.
-	ok, err = db.DeleteBlockTip(pegSha)
+	err, ok = db.DeleteBlockTip(pegSha)
 	if ok || err != pubrecdb.ErrBlockNotTip {
 		t.Fatalf("Blk(pegBlk) delete needs to fail: %v, %v", ok, err)
 	}
 
 	// Delete the current block tip
-	ok, err = db.DeleteBlockTip(a.Sha())
+	err, ok = db.DeleteBlockTip(a.Sha())
 	if !ok || err != nil {
 		t.Fatalf("Blk(a) delete failed: %v, %v", ok, err)
 	}

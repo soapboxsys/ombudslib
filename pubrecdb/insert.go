@@ -110,21 +110,22 @@ func (db *PublicRecord) insertBlockHead(tx *sql.Tx, blk *btcutil.Block) error {
 // InsertBlockHead only inserts the headers of the block into the DB.
 // If the block is already in the record then an error is thrown. It
 // makes no effort to insert bulletins or endorsements contained within it.
-func (db *PublicRecord) InsertBlockHead(blk *btcutil.Block) (bool, error) {
+func (db *PublicRecord) InsertBlockHead(blk *btcutil.Block) (error, bool) {
 	tx, err := db.conn.Begin()
 	if err != nil {
-		return false, err
+		return err, false
 	}
 
 	err = db.insertBlockHead(tx, blk)
 	if err != nil {
-		return false, tx.Rollback()
+		return tx.Rollback(), false
 	}
 
 	if err = tx.Commit(); err != nil {
+		return err, true
 	}
 
-	return true, nil
+	return nil, true
 }
 
 // insertBulletin ombutil.Bulletin used here requires references to a MsgTx, a
@@ -165,25 +166,25 @@ func (db *PublicRecord) insertBulletin(tx *sql.Tx, bltn *ombutil.Bulletin) (err 
 // InsertBulletin takes a bulletins and inserts it into the pubrecord. A
 // ombproto.Bulletin is used here instead of a wire.Bulletin because of the
 // high level utilities offered by the ombproto type.
-func (db *PublicRecord) InsertBulletin(bltn *ombutil.Bulletin) (bool, error) {
+func (db *PublicRecord) InsertBulletin(bltn *ombutil.Bulletin) (error, bool) {
 
 	// Start a sql transaction to insert the bulletin and the relevant tags.
 	var tx *sql.Tx
 	var err error
 	if tx, err = db.conn.Begin(); err != nil {
-		return false, err
+		return err, false
 	}
 
 	err = db.insertBulletin(tx, bltn)
 	if err != nil {
-		return false, tx.Rollback()
+		return tx.Rollback(), false
 	}
 
 	if err = tx.Commit(); err != nil {
-		return false, err
+		return err, true
 	}
 
-	return true, nil
+	return nil, true
 }
 
 func (db *PublicRecord) insertEndorsement(tx *sql.Tx, endo *ombutil.Endorsement) error {

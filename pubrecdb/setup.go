@@ -82,7 +82,7 @@ func InitDB(path string, params *chaincfg.Params) (*PublicRecord, error) {
 
 	// Insert the pegged starting block
 	pegBlk := peg.GetStartBlock()
-	if ok, err := db.InsertBlockHead(pegBlk); !ok {
+	if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
 		return nil, err
 	}
 
