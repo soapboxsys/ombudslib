@@ -7,7 +7,10 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
+// The first block's hash after the new year is:
+// [0000000000000000036f69604b2f9074571814702400dbb5d5cf6a78fd1dad40]
 const rawfilename = "new-year-blk.dat"
+
 const StartHeight = int32(391182)
 
 // GetStartBlock returns the pegged block which is assembled from the
