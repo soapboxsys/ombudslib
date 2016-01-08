@@ -1,17 +1,7 @@
 {
     "stop":  "0000000000000000036f69604b2f9074571814702400dbb5d5cf6a78fd1dad40",
     "start": "000000000000000000b7cb1d482daa69ebcfe252b588b7535294804bb1c29fb8"
-    "bulletins": [ 
-        { 
-            "txid": "4b787d0126ff3cf51a7eba936e9ad3d3ea4b7b397f806d1bec41e3f3fe5dbe62",
-            "author": "1MMxECoUMVKUHFBinbwmr9VkMwUsP4VivX",
-            "message": "What has been will be again... #sample",
-            "timestamp": 1451625615,
-            "blkHash": "0000000000000000004065c99b1183711326c30d417ee1729e35040d1b6940fe",
-            "blkTimestamp": 1451628000,
-            "blkHeight": 391442,
-            "endoCnt": 0
-        },
+    "bulletins": [
         {
             "txid": "d7dc61a5f2faad981ccf497e1a83cee649a702887987bbf17404e801c59157d3",
             "author": "1KAVWKr2RobcqEeBKK35hvB3FoGmu37cFB",
