@@ -3,9 +3,16 @@
     "author": "1KAVWKr2RobcqEeBKK35hvB3FoGmu37cFB",
     "message": "Will this message disseminate? #sample",
     "timestamp": 1452015864,
-    "blkHash": "00000000000000000503760b36aa8e000c5bcbc513c114f5da6142efe6303733",
-    "blkTimestamp": 1452016000,
-    "blkHeight": 391976,
+    "blkref": {
+        "hash": "00000000000000000503760b36aa8e000c5bcbc513c114f5da6142efe6303733",
+        "ts": 1452016000,
+        "h": 391976
+    },
+    "location": {
+        "lat": 9000,
+        "lon": 9000,
+        "h": 21
+    },
     "endoCnt": 1,
     "endorsements": [
         {
@@ -13,6 +20,11 @@
             "author": "1KAVWKr2RobcqEeBKK35hvB3FoGmu37cFB",
             "bid": "d7dc61a5f2faad981ccf497e1a83cee649a702887987bbf17404e801c59157d3",
             "timestamp": 1452196546
+            "blkref": {
+                "hash": "00000000000000000503760b36aa8e000c5bcbc513c114f5da6142efe6303733",
+                "ts": 1452016000,
+                "h": 391976
+            },
         }
     ]
 }

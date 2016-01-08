@@ -2,28 +2,36 @@ package ombjson
 
 // Single Items
 
-type BlkRef struct {
+type BlockRef struct {
 	Hash      string `json:"hash"`
-	Height    int64  `json:"h"`
+	Height    int32  `json:"h"`
 	Timestamp int64  `json:"ts"`
+}
+
+// Either all of the fields in a location are present or the location is not
+// created.
+type Location struct {
+	Lat int64 `json:"lat"`
+	Lon int64 `json:"lon"`
+	H   int64 `json:"h"`
 }
 
 // Holds all the information available about a given Bulletin
 type Bulletin struct {
-	Txid      string   `json:"txid"`
-	Author    string   `json:"author"`
-	Message   string   `json:"msg"`
-	Timestamp int64    `json:"timestamp,omitempty"`
-	Tags      []string `json:"tags",omitempty"`
-	NumEndos  int32    `json:"numEndos"`
-	BlkRef    *BlkRef  `json:"blkref",omitempty"`
+	Txid      string    `json:"txid"`
+	Author    string    `json:"author"`
+	Message   string    `json:"msg"`
+	Timestamp int64     `json:"timestamp, omitempty"`
+	NumEndos  int32     `json:"numEndos"`
+	BlockRef  *BlockRef `json:"blkref", omitempty"`
+	Location  *Location `json:"loc", omitempty"`
 }
 
 type Endorsement struct {
-	Txid      string  `json:"txid"`      // txid of the endorsements transaction
-	Bid       string  `json:"bid"`       // txid of the endorsed bulletin
-	Timestamp string  `json:"timestamp"` // User generated timestamp
-	BlkRef    *BlkRef `json:"blkref",omitempty`
+	Txid      string    `json:"txid"`      // txid of the endorsements transaction
+	Bid       string    `json:"bid"`       // txid of the endorsed bulletin
+	Timestamp string    `json:"timestamp"` // User generated timestamp
+	BlockRef  *BlockRef `json:"blkref",omitempty`
 }
 
 // Holds meta information about a single unique block
@@ -31,8 +39,8 @@ type BlockHead struct {
 	Hash      string `json:"hash"`
 	PrevHash  string `json:"prevHash"`
 	Timestamp int64  `json:"timestamp"`
-	Height    uint64 `json:"height"`
-	NumBltns  uint64 `json:"numBltns"`
+	Height    int32  `json:"height"`
+	NumBltns  int32  `json:"numBltns"`
 }
 
 // Contains a block head and the contained bulletins in that block
