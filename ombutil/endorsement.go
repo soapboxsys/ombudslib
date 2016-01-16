@@ -1,6 +1,9 @@
 package ombutil
 
 import (
+	"fmt"
+
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombjson"
@@ -16,12 +19,24 @@ type Endorsement struct {
 	Json *ombjson.Endorsement
 }
 
+// NewEndo functions very similarly to NewBltn. It bails out if there are any
+// problems with the passed wire, tx, or blk.
 func NewEndo(w *ombwire.Endorsement, tx *btcutil.Tx, blk *btcutil.Block) (*Endorsement, error) {
-	// validate w
+	// Check Bid is correct length
+	if len(w.GetBid()) != 32 {
+		return nil, fmt.Errorf("Endo's bid is wrong len")
+	}
+
+	author, err := ParseAuthor(tx.MsgTx(), &chaincfg.MainNetParams)
+	if err != nil {
+		return nil, err
+	}
+
 	endo := &Endorsement{
-		Block: blk,
-		Tx:    tx.MsgTx(),
-		Wire:  w, // Check bid to see if it is a real hash
+		Block:  blk,
+		Tx:     tx.MsgTx(),
+		Wire:   w,
+		Author: author,
 	}
 
 	return endo, nil

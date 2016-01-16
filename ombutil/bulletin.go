@@ -2,6 +2,7 @@ package ombutil
 
 import (
 	"errors"
+	"fmt"
 	"unicode/utf8"
 
 	"github.com/btcsuite/btcd/chaincfg"
@@ -32,16 +33,26 @@ type Bulletin struct {
 	Wire *ombwire.Bulletin
 }
 
+// NewBltn takes what looks like a bulletin and prepares it for insertion into
+// the public record. If there any problems NewBltn throws an error.
 func NewBltn(w *ombwire.Bulletin, tx *btcutil.Tx, blk *btcutil.Block) (*Bulletin, error) {
-	// validate wire tx msg
+	// Validate wire tx msg
+	if len(w.GetMessage()) < 1 {
+		return nil, fmt.Errorf("Wire msg has no content!")
+	}
 
 	// Parse author
+	author, err := ParseAuthor(tx.MsgTx(), &chaincfg.MainNetParams)
+	if err != nil {
+		return nil, err
+	}
 
 	// return type
 	bltn := &Bulletin{
-		Tx:    tx.MsgTx(),
-		Block: blk,
-		Wire:  w,
+		Tx:     tx.MsgTx(),
+		Block:  blk,
+		Wire:   w,
+		Author: author,
 	}
 	return bltn, nil
 }
@@ -51,16 +62,14 @@ func (bltn *Bulletin) AddBlock(blk *btcutil.Block) {
 }
 
 // Returns the "Author" who signed the first txin of the transaction
-func parseAuthor(tx *wire.MsgTx, net *chaincfg.Params) (Author, error) {
+func ParseAuthor(tx *wire.MsgTx, net *chaincfg.Params) (Author, error) {
 	if len(tx.TxIn) < 1 {
-		return Author(""), errors.New("No TxIns, malformed Bitcoin transaction")
+		return "", errors.New("No TxIns, malformed Bitcoin transaction")
 	}
-	sigScript := tx.TxIn[0].SignatureScript
-
-	dummyTx := wire.NewMsgTx()
+	sigScript := tx.TxIn[0].SignatureScript[:]
 
 	// Setup a script executor to parse the raw bytes of the signature script.
-	script, err := txscript.NewEngine(sigScript, dummyTx, 0, txscript.ScriptBip16, nil)
+	script, err := txscript.NewEngine(sigScript, tx, 0, txscript.ScriptBip16, nil)
 	if err != nil {
 		return "", err
 	}

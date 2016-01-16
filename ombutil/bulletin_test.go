@@ -1,19 +1,47 @@
 package ombutil_test
 
 import (
+	"bytes"
+	"encoding/hex"
 	"testing"
 
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/wire"
 	. "github.com/soapboxsys/ombudslib/ombutil"
 )
 
 // Challenge IsBulletin with several blks of transactions that are not
 // bulletins.
-func TestIsNotBulletin(t *testing.T) {
+func TestRejectBulletin(t *testing.T) {
 
 }
 
-func TestIsBulletin(t *testing.T) {
+func TestDetectBulletin(t *testing.T) {
 
+}
+
+// Ensure that parse author can extract the records author out of a raw bitcoin
+// tx.
+func TestParseAuthor(t *testing.T) {
+	var hexTx string = `0100000001d275627c84029b6c46155bb55423d5610936a1680bd2c900bda78fa0730f5178000000006a4730440220537a3bba833876116d55dedf09b696552a83cd0acd0fd8b7d30e5c67e339c66d02202eeb72ba5fe251e243c121bc377471de29335a386b1b672dd76dfb980b947d24012103ee01b63fde1a69fd75d8714ce02010fbc1d025a1c1e72ecee78805c8316092f5ffffffff022202000000000000296a274f4d42554453011f0a1754686520427269746973682061726520636f6d696e67211092b097b405354f1000000000001976a9148eace5df09b9a54f03661dd2cc6646f1b353329088ac00000000`
+
+	b, _ := hex.DecodeString(hexTx)
+
+	tx := wire.NewMsgTx()
+	err := tx.BtcDecode(bytes.NewBuffer(b), wire.ProtocolVersion)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	a, err := ParseAuthor(tx, &chaincfg.MainNetParams)
+	if err != nil {
+		t.Fatalf("Parsing valid author failed with: %s", err)
+	}
+
+	want := "18QxSqzxsWL9Fc6jpBM9vXZy6wZ7XFLCFy"
+	if string(a) != want {
+		t.Fatalf("Parsed: %s Wanted: %s", string(a), want)
+	}
 }
 
 func TestTagParse(t *testing.T) {

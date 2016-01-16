@@ -26,6 +26,13 @@ func (db *PublicRecord) countRows(table string) (int, error) {
 	return count, nil
 }
 
-func (db *PublicRecord) CurrentTip() string {
-	return "this is a fake chain tip string"
+func (db *PublicRecord) CurrentTip() (string, error) {
+	query := "SELECT hash FROM blocks ORDER BY height DESC LIMIT 1"
+	var hash string
+	err := db.conn.QueryRow(query).Scan(&hash)
+	if err != nil {
+		return "", err
+	}
+
+	return hash, nil
 }

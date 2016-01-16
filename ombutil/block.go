@@ -1,6 +1,7 @@
 package ombutil
 
 import (
+	"github.com/btcsuite/btclog"
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombwire"
 	"github.com/soapboxsys/ombudslib/ombwire/peg"
@@ -14,12 +15,20 @@ type UBlock struct {
 	Endorsements []*Endorsement
 }
 
-// CreateUBlock parses a btcutil block and parses out the relevant records.
-func CreateUBlock(blk *btcutil.Block) *UBlock {
+// CreateUBlock parses a btcutil block and parses out the relevant records. If
+// logger is not nil, it is used to report strange problems as the functions
+// parses through a block.
+func CreateUBlock(blk *btcutil.Block, log btclog.Logger) *UBlock {
 	ublk := &UBlock{
 		Block:        blk,
 		Bulletins:    []*Bulletin{},
 		Endorsements: []*Endorsement{},
+	}
+
+	wLog := func(s string, args ...interface{}) {
+		if log != nil {
+			log.Warnf(s, args)
+		}
 	}
 
 	for _, tx := range blk.Transactions() {
@@ -29,6 +38,7 @@ func CreateUBlock(blk *btcutil.Block) *UBlock {
 
 		w, err := ombwire.ParseTx(tx.MsgTx())
 		if w == nil || err != nil {
+			wLog("Parsing wire threw: %s", err)
 			continue
 		}
 
@@ -36,12 +46,14 @@ func CreateUBlock(blk *btcutil.Block) *UBlock {
 		case *ombwire.Bulletin:
 			bltn, err := NewBltn(w, tx, blk)
 			if err != nil {
+				wLog("Creating bltn threw: %s", err)
 				continue
 			}
 			ublk.Bulletins = append(ublk.Bulletins, bltn)
 		case *ombwire.Endorsement:
 			endo, err := NewEndo(w, tx, blk)
 			if err != nil {
+				wLog("Creating endo threw: %s", err)
 				continue
 			}
 			ublk.Endorsements = append(ublk.Endorsements, endo)

@@ -68,12 +68,17 @@ func (db *PublicRecord) GetTag(tag ombutil.Tag) (*ombjson.Page, error) {
 	}
 
 	page := &ombjson.Page{
-		Start:     db.CurrentTip(),
-		Stop:      peg.GetStartBlock().Sha().String(),
 		Bulletins: bltns,
 	}
 
-	if len(bltns) > 0 {
+	if len(bltns) < 1 {
+		page.Start = peg.GetStartBlock().Sha().String()
+		hash, err := db.CurrentTip()
+		if err != nil {
+			return nil, err
+		}
+		page.Start = hash
+	} else {
 		page.Start = bltns[0].BlockRef.Hash
 		page.Stop = bltns[len(bltns)-1].BlockRef.Hash
 	}
