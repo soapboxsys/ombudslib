@@ -154,7 +154,7 @@ func (db *PublicRecord) insertBulletin(tx *sql.Tx, bltn *ombutil.Bulletin) (err 
 	}
 
 	// Insert each tag within the bulletin
-	for _, tag := range bltn.Tags() {
+	for tag, _ := range bltn.Tags() {
 		_, err = tx.Stmt(db.insertTagStmt).Exec(txid, string(tag))
 		if err != nil {
 			return err

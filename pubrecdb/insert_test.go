@@ -144,7 +144,7 @@ func TestBulletinInsert(t *testing.T) {
 func TestEndorsementInsert(t *testing.T) {
 	db, _ := setupTestDB(false)
 
-	bid := []byte("groastbeefgroastbeef")
+	bid := []byte("adfdsawerjklgroastbeefgroastbeef")
 	ts := uint64(3242232232)
 
 	wendo := ombwire.Endorsement{
@@ -160,7 +160,7 @@ func TestEndorsementInsert(t *testing.T) {
 	}
 
 	if err, ok := db.InsertEndorsement(&endo); err != nil || !ok {
-		t.Fatalf("Insert failed with: %s", err)
+		t.Fatalf("Insert failed with: %s: %s", err, ok)
 	}
 
 	if c, _ := db.EndoCount(); c != 1 {

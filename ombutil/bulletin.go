@@ -14,6 +14,7 @@ import (
 
 type Author string
 type Tag string
+type Tags map[Tag]struct{}
 
 // Bulletin is a utility type that holds data and references. The unexported fields can be
 // nil.
@@ -80,9 +81,9 @@ func parseAuthor(tx *wire.MsgTx, net *chaincfg.Params) (Author, error) {
 // ParseTags returns up to maxNum tags in the passed string. Tags are pulled
 // out in iterative order and they are started with a '#' and concluded with a
 // tag break character.
-func ParseTags(m string) []Tag {
+func ParseTags(m string) Tags {
 	maxNum := 5
-	tags := make([]Tag, 0, maxNum)
+	tags := make(Tags)
 	var r rune
 	var i_s int = 0
 
@@ -103,7 +104,7 @@ func ParseTags(m string) []Tag {
 			if len(tags) >= maxNum {
 				break
 			}
-			tags = append(tags, tag)
+			tags[tag] = struct{}{}
 			i = j
 			i_s = 0
 		}
@@ -113,7 +114,7 @@ func ParseTags(m string) []Tag {
 
 // Tags returns all of the tags encoded within the message body of the
 // bulletin. Only the first 5 tags are counted and returned.
-func (bltn *Bulletin) Tags() []Tag {
+func (bltn *Bulletin) Tags() Tags {
 	m := bltn.Wire.GetMessage()
 	return ParseTags(m)
 }
