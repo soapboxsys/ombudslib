@@ -11,7 +11,7 @@ import (
 	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
-var defaultMaxQueryLimit = 500
+var defaultMaxQueryLimit = 10000
 
 // The overarching struct that contains everything needed for a connection to a
 // sqlite db containing the public record.
