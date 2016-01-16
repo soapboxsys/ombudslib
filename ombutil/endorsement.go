@@ -8,8 +8,9 @@ import (
 )
 
 type Endorsement struct {
-	Block *btcutil.Block
-	Tx    *wire.MsgTx
+	Block  *btcutil.Block
+	Tx     *wire.MsgTx
+	Author Author
 
 	Wire *ombwire.Endorsement
 	Json *ombjson.Endorsement

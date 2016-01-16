@@ -11,6 +11,10 @@ func (db *PublicRecord) BulletinCount() (int, error) {
 	return db.countRows("bulletins")
 }
 
+func (db *PublicRecord) EndoCount() (int, error) {
+	return db.countRows("endorsements")
+}
+
 func (db *PublicRecord) countRows(table string) (int, error) {
 	var count int
 	query := fmt.Sprintf(`SELECT count(*) FROM %s;`, table)

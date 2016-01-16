@@ -3,6 +3,7 @@ package pubrecdb
 import (
 	"database/sql"
 
+	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombutil"
 )
@@ -188,13 +189,20 @@ func (db *PublicRecord) InsertBulletin(bltn *ombutil.Bulletin) (error, bool) {
 }
 
 func (db *PublicRecord) insertEndorsement(tx *sql.Tx, endo *ombutil.Endorsement) error {
-	txid := "dingobatsrunatmidnight"
-	blkHash := "asdfasdfasdfasdfadsfdfas"
-	bid := "asfdasdfasdfasdfasdfasd"
-	auth := "1masdf33920sfa02339213"
-	time := 12312422
 
-	_, err := tx.Stmt(db.insertEndorsementStmt).Exec(txid, blkHash, bid, auth, time)
+	txid := endo.Tx.TxSha().String()
+	blkHash := endo.Block.Sha().String()
+
+	h, err := wire.NewShaHash(endo.Wire.GetBid())
+	if err != nil {
+		return err
+	}
+
+	bid := h.String()
+	auth := string(endo.Author)
+	time := endo.Wire.GetTimestamp()
+
+	_, err = tx.Stmt(db.insertEndorsementStmt).Exec(txid, blkHash, bid, auth, time)
 	if err != nil {
 		return err
 	}
@@ -206,16 +214,20 @@ func (db *PublicRecord) insertEndorsement(tx *sql.Tx, endo *ombutil.Endorsement)
 // enforce foreign key constraints. This allows endorsements to come in out of
 // order (or in a staggered fashion) endorsing a bulletin that is yet to be
 // mined.
-func (db *PublicRecord) InsertEndorsement(endo *ombutil.Endorsement) (err error) {
+func (db *PublicRecord) InsertEndorsement(endo *ombutil.Endorsement) (error, bool) {
 	var tx *sql.Tx
+	var err error
 	if tx, err = db.conn.Begin(); err != nil {
-		return err
+		return err, false
 	}
 
 	err = db.insertEndorsement(tx, endo)
 	if err != nil {
-		return tx.Rollback()
+		return tx.Rollback(), false
 	}
 
-	return tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return err, false
+	}
+	return nil, true
 }

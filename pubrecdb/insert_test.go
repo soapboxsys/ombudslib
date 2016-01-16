@@ -1,9 +1,8 @@
 package pubrecdb_test
 
 import (
-	"crypto/rand"
+	"encoding/binary"
 	"fmt"
-	mrand "math/rand"
 	"testing"
 	"time"
 
@@ -96,12 +95,12 @@ func TestBlockHeadInsert(t *testing.T) {
 func TestBulletinInsert(t *testing.T) {
 	db, _ := setupTestDB(false)
 
-	wirebltn := fakeWireBltn()
+	wirebltn := fakeWireBltn(1)
 	pegBlk := peg.GetStartBlock()
 	auth := ombutil.Author("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")
 
 	gbltn := &ombutil.Bulletin{
-		Tx:     fakeMsgTx(),
+		Tx:     fakeMsgTx(1),
 		Author: auth,
 		Wire:   &wirebltn,
 		Block:  pegBlk,
@@ -126,7 +125,7 @@ func TestBulletinInsert(t *testing.T) {
 	var m string = "This is #A #Tagged #Message"
 	wirebltn.Message = &m
 	lbltn := &ombutil.Bulletin{
-		Tx:     fakeMsgTx(),
+		Tx:     fakeMsgTx(2),
 		Author: auth,
 		Wire:   &wirebltn,
 		Block:  pegBlk,
@@ -145,7 +144,7 @@ func TestBulletinInsert(t *testing.T) {
 func TestEndorsementInsert(t *testing.T) {
 	db, _ := setupTestDB(false)
 
-	bid := []byte("deadbeefdeadbeefdeadbeef")
+	bid := []byte("groastbeefgroastbeef")
 	ts := uint64(3242232232)
 
 	wendo := ombwire.Endorsement{
@@ -153,18 +152,39 @@ func TestEndorsementInsert(t *testing.T) {
 		Bid:       bid,
 	}
 
-	// TODO fill out fields
 	endo := ombutil.Endorsement{
-		Wire: &wendo,
+		Wire:   &wendo,
+		Block:  peg.GetStartBlock(),
+		Author: ombutil.Author("1asfde238jfha32hydsa"),
+		Tx:     fakeMsgTx(2),
 	}
 
-	if err := db.InsertEndorsement(&endo); err != nil {
+	if err, ok := db.InsertEndorsement(&endo); err != nil || !ok {
 		t.Fatalf("Insert failed with: %s", err)
+	}
+
+	if c, _ := db.EndoCount(); c != 1 {
+		t.Fatalf("Insert did not add record: %d", c)
+	}
+
+	// Run the insert again
+	if err, ok := db.InsertEndorsement(&endo); err == nil && ok {
+		t.Fatalf("Insert with duplicate txid should have failed")
+	}
+
+	// Try insert with bad Bid hash value
+	endo.Tx = fakeMsgTx(3)
+	endo.Wire.Bid = []byte("roastbeef")
+
+	if err, ok := db.InsertEndorsement(&endo); err == nil && ok {
+		t.Fatalf("Insert w/ bad bid should have failed")
 	}
 }
 
-func fakeWireBltn() ombwire.Bulletin {
-	var m string = fmt.Sprintf("Climbing is fun: %d", mrand.Int())
+// fakeWireBltn lets us create a random or deterministic bltn as needed for
+// various test cases.
+func fakeWireBltn(nonce int) ombwire.Bulletin {
+	var m string = fmt.Sprintf("This is a unique bltn[%d]", nonce)
 	var ts uint64 = uint64(123741234)
 	var l float64 = float64(0.01)
 
@@ -180,10 +200,20 @@ func fakeWireBltn() ombwire.Bulletin {
 	return bltn
 }
 
-// fakeMsgTx creates a MsgTx that has a random component so that it hashes the
-// returned tx hashes to a different value everytime the funciton returns a new
-// tx.
-func fakeMsgTx() *wire.MsgTx {
+func fakeWireEndo(seed int, bid *wire.ShaHash) *ombwire.Endorsement {
+	ts := uint64(1234567890 + seed)
+
+	endo := &ombwire.Endorsement{
+		Bid:       bid.Bytes(),
+		Timestamp: &ts,
+	}
+
+	return endo
+}
+
+// fakeMsgTx creates a MsgTx that has a random seed so that it hashes the
+// returned tx hashes to a different value when a differnt nonce is provided.
+func fakeMsgTx(nonce int) *wire.MsgTx {
 	msgTx := wire.NewMsgTx()
 	txIn := wire.TxIn{
 		PreviousOutPoint: wire.OutPoint{
@@ -193,10 +223,9 @@ func fakeMsgTx() *wire.MsgTx {
 		SignatureScript: []byte{0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62},
 		Sequence:        0xffffffff,
 	}
-	// Read some random bytes
-	b := make([]byte, 20)
-	// Ignore errors
-	rand.Read(b)
+	// Place the nonce
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(nonce))
 	txOut := wire.TxOut{
 		Value:    5000000000,
 		PkScript: b,

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/mxk/go-sqlite/sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
@@ -15,11 +15,11 @@ import (
 // sqlite db containing the public record.
 type PublicRecord struct {
 	conn *sql.DB
-	// Read only connection for filtering
-	roConn *sqlite3.Conn
 
 	// Precompiled SQL selects
-	selectTxid        *sql.Stmt
+	selectBltn *sql.Stmt
+
+	// Line-O-PROGRESS
 	selectBlockHead   *sql.Stmt
 	selectBlockBltns  *sql.Stmt
 	selectAuthor      *sql.Stmt
@@ -80,6 +80,10 @@ func InitDB(path string, params *chaincfg.Params) (*PublicRecord, error) {
 		return nil, err
 	}
 
+	if err := prepareQueries(db); err != nil {
+		return nil, err
+	}
+
 	// Insert the pegged starting block
 	pegBlk := peg.GetStartBlock()
 	if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
@@ -110,15 +114,8 @@ func createPubRec(path string) (*PublicRecord, error) {
 		return nil, err
 	}
 
-	roPath := "file://" + path + "?mode=ro"
-	roConn, err := sqlite3.Open(roPath)
-	if err != nil {
-		return nil, err
-	}
-
 	db := &PublicRecord{
-		conn:   conn,
-		roConn: roConn,
+		conn: conn,
 	}
 
 	return db, nil
@@ -162,15 +159,10 @@ func execPragma(db *PublicRecord) error {
 	return nil
 }
 
+/*
 // Prepares all of the selects for maximal speediness note that all of the queries
 // must be initialized here or nil pointers will get thrown at runtime.
-func prepareQueries(db *PublicRecord) error {
-
-	var err error
-	db.selectTxid, err = db.conn.Prepare(selectTxidSql)
-	if err != nil {
-		return err
-	}
+func prepareQueriesOld(db *PublicRecord) error {
 
 	db.selectBlockHead, err = db.conn.Prepare(selectBlockHeadSql)
 	if err != nil {
@@ -248,4 +240,4 @@ func prepareQueries(db *PublicRecord) error {
 	}
 
 	return nil
-}
+}*/

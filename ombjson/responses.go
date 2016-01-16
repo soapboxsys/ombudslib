@@ -11,9 +11,9 @@ type BlockRef struct {
 // Either all of the fields in a location are present or the location is not
 // created.
 type Location struct {
-	Lat int64 `json:"lat"`
-	Lon int64 `json:"lon"`
-	H   int64 `json:"h"`
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+	H   float64 `json:"h"`
 }
 
 // Holds all the information available about a given Bulletin
