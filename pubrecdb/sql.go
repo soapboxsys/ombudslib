@@ -48,9 +48,10 @@ CREATE TABLE endorsements (
 );
 
 CREATE TABLE tags (
-    txid   TEXT,
-    value  TEXT,
+    txid   TEXT NOT NULL,
+    value  TEXT NOT NULL,
 
+    PRIMARY KEY(txid, value)
     FOREIGN KEY(txid) REFERENCES bulletins(txid) ON DELETE CASCADE
 );
 
@@ -58,6 +59,7 @@ CREATE INDEX IF NOT EXISTS idx_tags ON tags (value);
 CREATE INDEX IF NOT EXISTS idx_height ON blocks (height);
 CREATE INDEX IF NOT EXISTS idx_timestamp ON blocks (timestamp);
 `
+	// REMEMBER to move the trailing ` down a line.
 
 	return sql
 }

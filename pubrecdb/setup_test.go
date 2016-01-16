@@ -15,10 +15,6 @@ import (
 
 // SetupTestDB exports setupTestDB for tests that live inside pubrecdb.
 func SetupTestDB(add_rows bool) (*PublicRecord, error) {
-	return setupTestDB(add_rows)
-}
-
-func setupTestDB(add_rows bool) (*PublicRecord, error) {
 	db, err := InitDB(getPath(), &chaincfg.MainNetParams)
 	if err != nil {
 		panic(err)
@@ -34,14 +30,14 @@ func setupTestDB(add_rows bool) (*PublicRecord, error) {
 }
 
 func TestEmptySetupDB(t *testing.T) {
-	_, err := setupTestDB(false)
+	_, err := SetupTestDB(false)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestSetupDB(t *testing.T) {
-	_, err := setupTestDB(true)
+	_, err := SetupTestDB(true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,6 +85,22 @@ func setupTestInsertBltns(db *PublicRecord) {
 	// bltn(4) txid is:
 	// [c19fbeacb46e865bfee6db89e9b0a41019079efa305b477d14a35945442e9f45]
 	bltn = fakeUBltn(4)
+	if err, _ := db.InsertBulletin(bltn); err != nil {
+		log.Fatal(err)
+	}
+
+	// bltn(7) txid is:
+	bltn = fakeUBltn(7)
+	var m string = "We can change content #preflight"
+	bltn.Wire.Message = &m
+	if err, _ := db.InsertBulletin(bltn); err != nil {
+		log.Fatal(err)
+	}
+
+	// bltn(8) txid is:
+	bltn = fakeUBltn(8)
+	m = "This is another message #preflight"
+	bltn.Wire.Message = &m
 	if err, _ := db.InsertBulletin(bltn); err != nil {
 		log.Fatal(err)
 	}

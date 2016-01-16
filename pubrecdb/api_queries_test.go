@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/soapboxsys/ombudslib/ombutil"
 )
 
 func TestGetBulletin(t *testing.T) {
@@ -41,4 +42,26 @@ func TestGetBulletin(t *testing.T) {
 		t.Fatal(spew.Sprintf("bltn(4) query returned %s", bltn))
 	}
 
+}
+
+func TestGetTag(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	page, err := db.GetTag(ombutil.Tag("#wistful"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(page.Bulletins) != 0 {
+		t.Fatal("Page should be empty")
+	}
+
+	page, err = db.GetTag(ombutil.Tag("#preflight"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(page.Bulletins) != 2 {
+		t.Fatal("Page should have two bulletins in it")
+	}
 }

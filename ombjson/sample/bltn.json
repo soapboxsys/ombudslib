@@ -9,9 +9,9 @@
         "h": 391976
     },
     "location": {
-        "lat": 9000,
-        "lon": 9000,
-        "h": 21
+        "lat": 9000.0,
+        "lon": 9000.0,
+        "h": 21.0
     },
     "endoCnt": 1,
     "endorsements": [

@@ -42,9 +42,10 @@ CREATE TABLE endorsements (
 );
 
 CREATE TABLE tags (
-    txid   TEXT,
-    value  TEXT,
+    txid   TEXT NOT NULL,
+    value  TEXT NOT NULL,
 
+    PRIMARY KEY(txid, value)
     FOREIGN KEY(txid) REFERENCES bulletins(txid) ON DELETE CASCADE
 );
 

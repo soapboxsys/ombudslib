@@ -21,10 +21,10 @@ type Bulletin struct {
 	Txid      string    `json:"txid"`
 	Author    string    `json:"author"`
 	Message   string    `json:"msg"`
-	Timestamp int64     `json:"timestamp, omitempty"`
+	Timestamp int64     `json:"timestamp", omitempty`
 	NumEndos  int32     `json:"numEndos"`
-	BlockRef  *BlockRef `json:"blkref", omitempty"`
-	Location  *Location `json:"loc", omitempty"`
+	BlockRef  *BlockRef `json:"blkref", omitempty`
+	Location  *Location `json:"loc", omitempty`
 }
 
 type Endorsement struct {

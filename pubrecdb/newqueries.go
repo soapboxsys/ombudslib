@@ -25,3 +25,7 @@ func (db *PublicRecord) countRows(table string) (int, error) {
 
 	return count, nil
 }
+
+func (db *PublicRecord) CurrentTip() string {
+	return "this is a fake chain tip string"
+}

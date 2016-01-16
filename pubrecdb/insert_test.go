@@ -16,7 +16,7 @@ import (
 // TestBlockHeadInsert tries to insert a <- b and then c which points nowhere
 // and should fail.
 func TestBlockHeadInsert(t *testing.T) {
-	db, _ := setupTestDB(false)
+	db, _ := SetupTestDB(false)
 
 	bogus_h := wire.ShaHash([wire.HashSize]byte{
 		0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -93,7 +93,7 @@ func TestBlockHeadInsert(t *testing.T) {
 // inserting it examines the state of the test.db to see if the bulletins (and
 // tags) are inserted properly.
 func TestBulletinInsert(t *testing.T) {
-	db, _ := setupTestDB(false)
+	db, _ := SetupTestDB(false)
 
 	wirebltn := fakeWireBltn(1)
 	pegBlk := peg.GetStartBlock()
@@ -142,7 +142,7 @@ func TestBulletinInsert(t *testing.T) {
 }
 
 func TestEndorsementInsert(t *testing.T) {
-	db, _ := setupTestDB(false)
+	db, _ := SetupTestDB(false)
 
 	bid := []byte("adfdsawerjklgroastbeefgroastbeef")
 	ts := uint64(3242232232)

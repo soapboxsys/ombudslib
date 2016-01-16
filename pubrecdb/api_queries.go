@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/soapboxsys/ombudslib/ombjson"
+	"github.com/soapboxsys/ombudslib/ombutil"
+	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
 var (
@@ -12,13 +14,22 @@ var (
 		SELECT bulletins.txid, bulletins.author, message, bulletins.timestamp, bulletins.block, blocks.timestamp, blocks.height, count(endorsements.txid), latitude, longitude, bulletins.height
 	`
 
-	// TODO seems alright
 	selectBltnSql string = bltnSql +
 		`
 		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
 		LEFT JOIN endorsements ON bulletins.txid = endorsements.bid
 		WHERE bulletins.txid = $1 
 		GROUP BY bulletins.txid HAVING bulletins.txid NOT null
+	`
+
+	selectTagSql string = bltnSql + `
+		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
+		LEFT JOIN endorsements ON bulletins.txid = endorsements.bid
+		LEFT JOIN tags ON bulletins.txid = tags.txid
+		WHERE tags.value = $1 COLLATE NOCASE
+		GROUP BY bulletins.txid HAVING bulletins.txid NOT null
+		ORDER BY blocks.height DESC, bulletins.timestamp DESC
+		LIMIT $2
 	`
 )
 
@@ -29,7 +40,45 @@ func prepareQueries(db *PublicRecord) error {
 	if err != nil {
 		return err
 	}
+
+	db.selectTag, err = db.conn.Prepare(selectTagSql)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+// GetTag returns a blk cursor with all of the bulletins in a tag ordered by the
+// bulletins timestamp. If no bulletins exist in the record with that tag, an empty
+// list is returned.
+func (db *PublicRecord) GetTag(tag ombutil.Tag) (*ombjson.Page, error) {
+	rows, err := db.selectTag.Query(string(tag), db.maxQueryLimit)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	bltns := []*ombjson.Bulletin{}
+	for rows.Next() {
+		bltn, err := scanBltn(rows)
+		if err != nil {
+			return nil, err
+		}
+		bltns = append(bltns, bltn)
+	}
+
+	page := &ombjson.Page{
+		Start:     db.CurrentTip(),
+		Stop:      peg.GetStartBlock().Sha().String(),
+		Bulletins: bltns,
+	}
+
+	if len(bltns) > 0 {
+		page.Start = bltns[0].BlockRef.Hash
+		page.Stop = bltns[len(bltns)-1].BlockRef.Hash
+	}
+
+	return page, nil
 }
 
 // GetBulletin returns a single bulletin as json that is identified by txid.

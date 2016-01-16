@@ -12,7 +12,7 @@ import (
 
 // Determines if the delete works and fails when it is supposed to.
 func TestDeleteBlockTip(t *testing.T) {
-	db, _ := setupTestDB(false)
+	db, _ := SetupTestDB(false)
 
 	bogus_h := wire.ShaHash([wire.HashSize]byte{
 		0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
