@@ -1,6 +1,13 @@
 package pubrecdb
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/btcsuite/btcd/wire"
+	"github.com/soapboxsys/ombudslib/ombjson"
+	"github.com/soapboxsys/ombudslib/ombwire/peg"
+)
 
 // BlockCount returns the number of blocks stored in the DB
 func (db *PublicRecord) BlockCount() (int, error) {
@@ -26,13 +33,56 @@ func (db *PublicRecord) countRows(table string) (int, error) {
 	return count, nil
 }
 
-func (db *PublicRecord) CurrentTip() (string, error) {
-	query := "SELECT hash FROM blocks ORDER BY height DESC LIMIT 1"
-	var hash string
-	err := db.conn.QueryRow(query).Scan(&hash)
+func scanBlockHead(cursor scannable) (*ombjson.Block, error) {
+	var hash, prevhash string
+	var height, endo_cnt, bltn_cnt int32
+	var ts int64
+
+	err := cursor.Scan(&hash, &prevhash, &height, &ts, &endo_cnt, &bltn_cnt)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return hash, nil
+	blk := &ombjson.Block{
+		Head: &ombjson.BlockHead{
+			Hash:      hash,
+			PrevHash:  prevhash,
+			Height:    height,
+			Timestamp: ts,
+			NumBltns:  bltn_cnt,
+			NumEndos:  endo_cnt,
+		},
+	}
+
+	return blk, nil
+}
+
+func (db *PublicRecord) GetBlockTip() (*ombjson.Block, error) {
+	row := db.selectBlockTip.QueryRow()
+	blk, err := scanBlockHead(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return blk, nil
+}
+
+// FindHeight returns the height of the block. It returns -1, sql.ErrNoRows if
+// block hash is not in the record. If the passed hash is the prevHash of the
+// peg block, FindHeight returns the height from memory, it does not make a
+// round trip to the db.
+func (db *PublicRecord) FindHeight(hash *wire.ShaHash) (int32, error) {
+	firstHash := peg.GetStartBlock().MsgBlock().Header.PrevBlock.Bytes()
+	if bytes.Equal(hash.Bytes(), firstHash) {
+		return int32(peg.StartHeight - 1), nil
+	}
+
+	row := db.findHeight.QueryRow(hash.String())
+
+	var height int32
+	err := row.Scan(&height)
+	if err != nil {
+		return -1, err
+	}
+	return height, nil
 }

@@ -23,7 +23,7 @@ var (
 	`
 
 	insertEndoSql string = `
-		INSERT INTO endorsements (txid, block, bid, timestamp, author) 
+		INSERT INTO endorsements (txid, block, bid, author, timestamp) 
 		VALUES ($1, $2, $3, $4, $5)
 	`
 )

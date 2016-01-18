@@ -22,8 +22,12 @@ type PublicRecord struct {
 	maxQueryLimit int
 
 	// Precompiled SQL selects
-	selectBltn *sql.Stmt
-	selectTag  *sql.Stmt
+	selectBltn        *sql.Stmt
+	selectTag         *sql.Stmt
+	selectEndo        *sql.Stmt
+	selectBltnsHeight *sql.Stmt
+	findHeight        *sql.Stmt
+	selectBlockTip    *sql.Stmt
 
 	// Line-O-PROGRESS
 	selectBlockHead   *sql.Stmt

@@ -28,10 +28,12 @@ type Bulletin struct {
 }
 
 type Endorsement struct {
-	Txid      string    `json:"txid"`      // txid of the endorsements transaction
-	Bid       string    `json:"bid"`       // txid of the endorsed bulletin
-	Timestamp string    `json:"timestamp"` // User generated timestamp
-	BlockRef  *BlockRef `json:"blkref",omitempty`
+	Txid       string    `json:"txid"`       // txid of the endorsements transaction
+	Author     string    `json:"author"`     // the creator of the endorsement
+	Bid        string    `json:"bid"`        // txid of the endorsed bulletin
+	Timestamp  int64     `json:"timestamp"`  // User generated timestamp
+	BltnExists bool      `json:"bltnExists"` // Indicates existence of Bid in the record
+	BlockRef   *BlockRef `json:"blkref",omitempty`
 }
 
 // Holds meta information about a single unique block
@@ -41,6 +43,7 @@ type BlockHead struct {
 	Timestamp int64  `json:"timestamp"`
 	Height    int32  `json:"height"`
 	NumBltns  int32  `json:"numBltns"`
+	NumEndos  int32  `json:"numEndos"`
 }
 
 // Contains a block head and the contained bulletins in that block

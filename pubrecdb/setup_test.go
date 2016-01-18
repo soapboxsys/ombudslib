@@ -5,13 +5,17 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombutil"
 	"github.com/soapboxsys/ombudslib/ombwire/peg"
 	. "github.com/soapboxsys/ombudslib/pubrecdb"
 )
+
+var tst_blk_a *btcutil.Block
 
 // SetupTestDB exports setupTestDB for tests that live inside pubrecdb.
 func SetupTestDB(add_rows bool) (*PublicRecord, error) {
@@ -60,17 +64,57 @@ func getPath() (s string) {
 // setupTestInsertBlocks adds an initial set of blocks to the test db that
 // other test functions can rely on.
 func setupTestInsertBlocks(db *PublicRecord) {
-	/*	blocks := []wire.MsgBlock{
 
+	peg_h := peg.GetStartBlock().Sha()
+	zero := *newSha("0000000000000000000000000000000000000000000000000000000000000000")
+	ts := time.Unix(123456789, 0)
 
+	// a_blk hash is:
+	// [89fc0ab80e1427696ef6019d0a284101eab6f26b091918e8d2226961f1f3cac1]
+	a_blk := wire.MsgBlock{
+		Header: wire.BlockHeader{
+			MerkleRoot: zero,
+			PrevBlock:  *peg_h,
+			Timestamp:  ts,
+			Bits:       0,
+			Nonce:      0,
+		},
+	}
+	tst_blk_a = btcutil.NewBlock(&a_blk)
+	tst_blk_a.SetHeight(peg.StartHeight + 1)
 
-		}
+	// b_blk hash is:
+	// [4dab5d688eb366516e5a64afc7bf8536cdeca5b4d5fbc9fce12b71ac6a11a687]
+	b_blk := wire.MsgBlock{
+		Header: wire.BlockHeader{
+			MerkleRoot: zero,
+			PrevBlock:  a_blk.BlockSha(),
+			Timestamp:  ts,
+			Bits:       0,
+			Nonce:      0,
+		},
+	}
 
+	// c_blk hash is:
+	// [c29afa6a9c333113f24d09368620c1eeb0943c65b92dc647cf80a51610a876d2]
+	c_blk := wire.MsgBlock{
+		Header: wire.BlockHeader{
+			MerkleRoot: zero,
+			PrevBlock:  b_blk.BlockSha(),
+			Timestamp:  ts,
+			Bits:       0,
+			Nonce:      0,
+		},
+	}
 
-		for _, blk range blocks {
-			db.insertBlock(blk)
-		}
-	*/
+	blocks := []wire.MsgBlock{a_blk, b_blk, c_blk}
+
+	for i, blk := range blocks {
+		ublk := btcutil.NewBlock(&blk)
+		// Get the height of the blocks in sequence
+		ublk.SetHeight(int32(i+1) + peg.StartHeight)
+		db.InsertBlockHead(ublk)
+	}
 }
 
 func setupTestInsertBltns(db *PublicRecord) {
@@ -90,6 +134,7 @@ func setupTestInsertBltns(db *PublicRecord) {
 	}
 
 	// bltn(7) txid is:
+	// [196d5c0848253dd156740f5db875a78c4f1fcb384104f395c3ebcc241250f8df]
 	bltn = fakeUBltn(7)
 	var m string = "We can change content #preflight"
 	bltn.Wire.Message = &m
@@ -98,8 +143,20 @@ func setupTestInsertBltns(db *PublicRecord) {
 	}
 
 	// bltn(8) txid is:
+	// [d4480f924779f408627766462b97976d9e7afdfeca8a3f890c1fefdd1a5d4fa2]
 	bltn = fakeUBltn(8)
 	m = "This is another message #preflight"
+	bltn.Wire.Message = &m
+	if err, _ := db.InsertBulletin(bltn); err != nil {
+		log.Fatal(err)
+	}
+
+	// btln(9) txid is:
+	// [8a73289660100036a10d5c11aa8728ff41d599a2cac2cd4b029f0eea099051ac]
+	// It is in tst_blk_a
+	bltn = fakeUBltn(9)
+	bltn.Block = tst_blk_a
+	m = "A bulletin is all he brought #lambs"
 	bltn.Wire.Message = &m
 	if err, _ := db.InsertBulletin(bltn); err != nil {
 		log.Fatal(err)

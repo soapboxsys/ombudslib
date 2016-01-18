@@ -4,20 +4,27 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/btcsuite/btcd/wire"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/soapboxsys/ombudslib/ombutil"
 )
 
+func newSha(s string) *wire.ShaHash {
+	h, _ := wire.NewShaHashFromStr(s)
+	return h
+}
+
 func TestGetBulletin(t *testing.T) {
 	db, _ := SetupTestDB(true)
 
-	b, err := db.GetBulletin("I am not in the db")
+	txid := newSha("000000000000000000000000000000000000000000000000000000000000000")
+	b, err := db.GetBulletin(txid)
 	if err != sql.ErrNoRows {
 		t.Fatalf("Query should error: %s, %s", b, err)
 	}
 
 	// See if the fakeWireBltn(3) txid is present
-	txid := "73532d0280dc80bd7b8477522d17cd648eae067d5759cd758b0939159d57dfab"
+	txid = newSha("73532d0280dc80bd7b8477522d17cd648eae067d5759cd758b0939159d57dfab")
 	bltn, err := db.GetBulletin(txid)
 	if err != nil {
 		t.Fatal(err)
@@ -31,7 +38,7 @@ func TestGetBulletin(t *testing.T) {
 	}
 
 	// Check for fakeWireBltn(4)'s presence.
-	txid = "c19fbeacb46e865bfee6db89e9b0a41019079efa305b477d14a35945442e9f45"
+	txid = newSha("c19fbeacb46e865bfee6db89e9b0a41019079efa305b477d14a35945442e9f45")
 	bltn, err = db.GetBulletin(txid)
 	if err != nil {
 		t.Fatal(err)
@@ -64,4 +71,41 @@ func TestGetTag(t *testing.T) {
 	if len(page.Bulletins) != 2 {
 		t.Fatal("Page should have two bulletins in it")
 	}
+}
+
+func TestGetRange(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	// Height of start is pegStart + 3
+	start := newSha("c29afa6a9c333113f24d09368620c1eeb0943c65b92dc647cf80a51610a876d2")
+	// Stop is the hash of the blk before the peg blk.
+	stop := newSha("000000000000000002dfcd5cd05cd4f80d792e51ecdc5942cd6cec1365b22a2d")
+
+	page, err := db.QueryRange(start, stop)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(page.Bulletins) != 5 {
+		t.Fatalf(spew.Sprintf("Query failed: %s\n", page))
+	}
+}
+
+func TestGetBlockTip(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	tipHash := "c29afa6a9c333113f24d09368620c1eeb0943c65b92dc647cf80a51610a876d2"
+
+	tipBlk, err := db.GetBlockTip()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if tipBlk.Head.Hash != tipHash {
+		t.Fatalf(spw(tipBlk))
+	}
+}
+
+func spw(t interface{}) string {
+	return spew.Sprintf("%s\n", t)
 }
