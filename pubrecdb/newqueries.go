@@ -57,14 +57,19 @@ func scanBlockHead(cursor scannable) (*ombjson.Block, error) {
 	return blk, nil
 }
 
+// GetBlock returns the block in the record specified by 'hash'. If it is not
+// present then sql.ErrNoRows is returned.
+func (db *PublicRecord) GetBlock(hash *wire.ShaHash) (*ombjson.Block, error) {
+	row := db.selectBlock.QueryRow(hash.String())
+	return scanBlockHead(row)
+}
+
+// GetBlockTip works exactly the same as GetBlock except that the query always
+// returns the block at the tip of the chain. This is the block that has the
+// greatest height in the record.
 func (db *PublicRecord) GetBlockTip() (*ombjson.Block, error) {
 	row := db.selectBlockTip.QueryRow()
-	blk, err := scanBlockHead(row)
-	if err != nil {
-		return nil, err
-	}
-
-	return blk, nil
+	return scanBlockHead(row)
 }
 
 // FindHeight returns the height of the block. It returns -1, sql.ErrNoRows if

@@ -8,6 +8,14 @@ import (
 )
 
 var (
+	selectEndosByBidSql string = `
+		SELECT e.txid, e.author, e.bid, e.timestamp, e.block, 
+			   blocks.height, blocks.timestamp, NULL
+		From endorsements as e
+		LEFT JOIN blocks ON blocks.hash = e.block
+		WHERE e.bid = $1
+	`
+
 	selectEndoSql string = `
 		SELECT e.txid, e.author, e.bid, e.timestamp, e.block, 
 			   blocks.height, blocks.timestamp, bulletins.txid
@@ -23,6 +31,27 @@ var (
 func (db *PublicRecord) GetEndorsement(txid *wire.ShaHash) (*ombjson.Endorsement, error) {
 	row := db.selectEndo.QueryRow(txid.String())
 	return scanEndo(row)
+}
+
+func (db *PublicRecord) GetEndosByBid(bid *wire.ShaHash) ([]*ombjson.Endorsement, error) {
+	rows, err := db.selectEndosByBid.Query(bid.String())
+	defer rows.Close()
+	if err != nil {
+		return []*ombjson.Endorsement{}, err
+	}
+	return scanEndos(rows)
+}
+
+func scanEndos(rows *sql.Rows) ([]*ombjson.Endorsement, error) {
+	endos := []*ombjson.Endorsement{}
+	for rows.Next() {
+		endo, err := scanEndo(rows)
+		if err != nil {
+			return []*ombjson.Endorsement{}, err
+		}
+		endos = append(endos, endo)
+	}
+	return endos, nil
 }
 
 func scanEndo(cursor scannable) (*ombjson.Endorsement, error) {

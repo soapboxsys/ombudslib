@@ -27,7 +27,9 @@ type PublicRecord struct {
 	selectEndo        *sql.Stmt
 	selectBltnsHeight *sql.Stmt
 	findHeight        *sql.Stmt
+	selectBlock       *sql.Stmt
 	selectBlockTip    *sql.Stmt
+	selectEndosByBid  *sql.Stmt
 
 	// Line-O-PROGRESS
 	selectBlockHead   *sql.Stmt

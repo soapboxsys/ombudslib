@@ -2,7 +2,6 @@ package pubrecdb_test
 
 import (
 	"database/sql"
-	"log"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -21,10 +20,24 @@ func TestGetEndorsement(t *testing.T) {
 	txid := newSha("4bf52e816c845b40f71209e611fc3a1d352526d57f722a4c5fad7d8558611be3")
 	e, err := db.GetEndorsement(txid)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	if e.Timestamp != 1234567895 {
-		log.Fatal(spew.Sprintf("%s\n", e))
+		t.Fatal(spew.Sprintf("%s\n", e))
+	}
+}
+
+func TestGetEndosByBid(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	bid := newSha("c19fbeacb46e865bfee6db89e9b0a41019079efa305b477d14a35945442e9f45")
+	endos, err := db.GetEndosByBid(bid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(endos) != 2 {
+		spw(endos)
 	}
 }

@@ -18,13 +18,14 @@ type Location struct {
 
 // Holds all the information available about a given Bulletin
 type Bulletin struct {
-	Txid      string    `json:"txid"`
-	Author    string    `json:"author"`
-	Message   string    `json:"msg"`
-	Timestamp int64     `json:"timestamp", omitempty`
-	NumEndos  int32     `json:"numEndos"`
-	BlockRef  *BlockRef `json:"blkref", omitempty`
-	Location  *Location `json:"loc", omitempty`
+	Txid         string         `json:"txid"`
+	Author       string         `json:"author"`
+	Message      string         `json:"msg"`
+	Timestamp    int64          `json:"timestamp",omitempty`
+	NumEndos     int32          `json:"numEndos"`
+	BlockRef     *BlockRef      `json:"blkref",omitempty`
+	Location     *Location      `json:"loc",omitempty`
+	Endorsements []*Endorsement `json:"endos",omitempty`
 }
 
 type Endorsement struct {

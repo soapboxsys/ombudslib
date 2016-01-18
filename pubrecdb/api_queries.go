@@ -49,6 +49,13 @@ var (
 		       count(endorsements.txid), count(bulletins.txid)
 	`
 
+	selectBlockSql string = blockHeadSql + `
+		FROM blocks LEFT JOIN endorsements ON endorsements.block = blocks.hash
+		LEFT JOIN bulletins ON bulletins.block = blocks.hash
+		WHERE blocks.hash = $1
+		GROUP BY blocks.hash HAVING blocks.hash NOT null
+	`
+
 	selectBlockTipSql string = blockHeadSql + `
 		FROM blocks LEFT JOIN endorsements ON endorsements.block = blocks.hash
 		LEFT JOIN bulletins ON bulletins.block = blocks.hash
@@ -56,19 +63,21 @@ var (
 		ORDER BY blocks.height DESC
 		LIMIT 1
 	`
-
-	// TODO implement selectBlock
-	selectBlockSql string = blockHeadSql + `
-		FROM blocks LEFT JOIN endorsements ON endorsements.block = blocks.hash
-		LEFT JOIN bulletins ON bulletins.block = blocks.hash
-		WHERE blocks.hash = $1
-		GROUP BY blocks.hash HAVING blocks.hash NOT null
-	`
 )
 
 func prepareQueries(db *PublicRecord) error {
 
 	var err error
+	db.selectEndosByBid, err = db.conn.Prepare(selectEndosByBidSql)
+	if err != nil {
+		return err
+	}
+
+	db.selectBlock, err = db.conn.Prepare(selectBlockSql)
+	if err != nil {
+		return err
+	}
+
 	db.selectBlockTip, err = db.conn.Prepare(selectBlockTipSql)
 	if err != nil {
 		return err
@@ -219,7 +228,18 @@ func (db *PublicRecord) GetTag(tag ombutil.Tag) (*ombjson.BltnPage, error) {
 // string).
 func (db *PublicRecord) GetBulletin(txid *wire.ShaHash) (*ombjson.Bulletin, error) {
 	row := db.selectBltn.QueryRow(txid.String())
-	return scanBltn(row)
+	bltn, err := scanBltn(row)
+	if err != nil {
+		return nil, err
+	}
+	// Scan endorsements related to the bulletin
+	endos, err := db.GetEndosByBid(txid)
+	if err != nil {
+		return nil, err
+	}
+	bltn.Endorsements = endos
+
+	return bltn, nil
 }
 
 func scanBltn(cursor scannable) (*ombjson.Bulletin, error) {

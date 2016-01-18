@@ -87,22 +87,7 @@ func TestGetRange(t *testing.T) {
 	}
 
 	if len(page.Bulletins) != 5 {
-		t.Fatalf(spew.Sprintf("Query failed: %s\n", page))
-	}
-}
-
-func TestGetBlockTip(t *testing.T) {
-	db, _ := SetupTestDB(true)
-
-	tipHash := "c29afa6a9c333113f24d09368620c1eeb0943c65b92dc647cf80a51610a876d2"
-
-	tipBlk, err := db.GetBlockTip()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if tipBlk.Head.Hash != tipHash {
-		t.Fatalf(spw(tipBlk))
+		t.Fatalf("Query failed: %s\n", spw(page))
 	}
 }
 
