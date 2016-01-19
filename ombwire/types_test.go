@@ -39,6 +39,27 @@ func TestEncodeWireType(t *testing.T) {
 	if n_bltn.GetMessage() != orig_bltn.GetMessage() {
 		t.Fatalf("Original and final messages do not match!")
 	}
+
+	no_loc_bltn := &Bulletin{
+		Message:   &m,
+		Timestamp: &ts,
+	}
+
+	b, err = EncodeWireType(no_loc_bltn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pm, err = DecodeWireType(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	n_bltn = pm.(*Bulletin)
+	if no_loc_bltn.GetLocation() != nil {
+		t.Fatalf("Optional Location should be nil")
+	}
+
 }
 
 func TestEncodeEndo(t *testing.T) {

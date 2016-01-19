@@ -2,11 +2,15 @@ package pubrecdb_test
 
 import (
 	"database/sql"
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/btcsuite/btcd/wire"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/soapboxsys/ombudslib/ombutil"
+	"github.com/soapboxsys/ombudslib/ombwire"
+	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
 func newSha(s string) *wire.ShaHash {
@@ -49,6 +53,48 @@ func TestGetBulletin(t *testing.T) {
 		t.Fatal(spew.Sprintf("bltn(4) query returned %s", bltn))
 	}
 
+}
+
+// Tests a bulletins whole round trip, to see if the location values where set
+// to null properly.
+func TestNilLocBulletin(t *testing.T) {
+	db, _ := SetupTestDB(true)
+	msg := "This bltn has no location"
+	ts := uint64(1234567890)
+
+	noloc := ombwire.Bulletin{
+		Timestamp: &ts,
+		Message:   &msg,
+	}
+	bltn := ombutil.Bulletin{
+		Tx:     fakeMsgTx(10),
+		Block:  peg.GetStartBlock(),
+		Author: ombutil.Author("1asdfasdfasfdafads"),
+		Wire:   &noloc,
+	}
+	if err, ok := db.InsertBulletin(&bltn); err != nil || !ok {
+		t.Fatal(err)
+	}
+
+	txsha := bltn.Tx.TxSha()
+	jsonBltn, err := db.GetBulletin(&txsha)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if jsonBltn.Location != nil {
+		t.Fatalf(spw(jsonBltn))
+	}
+
+	b, err := json.Marshal(jsonBltn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s := spw(b)
+	if !strings.Contains(s, `"loc":null,`) {
+		t.Fatalf("Output json does not comform to spec:\n %s", s)
+	}
 }
 
 func TestGetTag(t *testing.T) {

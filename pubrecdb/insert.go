@@ -142,13 +142,20 @@ func (db *PublicRecord) insertBulletin(tx *sql.Tx, bltn *ombutil.Bulletin) (err 
 	ts := bltn.Wire.GetTimestamp()
 
 	loc := bltn.Wire.GetLocation()
-	lt := loc.GetLat()
-	lg := loc.GetLon()
-	ht := loc.GetH()
+	var lat, lon, ht sql.NullFloat64
+	if loc != nil {
+		lat = sql.NullFloat64{loc.GetLat(), true}
+		lon = sql.NullFloat64{loc.GetLon(), true}
+		ht = sql.NullFloat64{loc.GetH(), true}
+	} else {
+		lat = sql.NullFloat64{0, false}
+		lon = sql.NullFloat64{0, false}
+		ht = sql.NullFloat64{0, false}
+	}
 
 	// Execute the insert sql statement
 	_, err = tx.Stmt(db.insertBulletinStmt).Exec(txid, blkHash, ath, msg,
-		ts, lt, lg, ht)
+		ts, lat, lon, ht)
 	if err != nil {
 		return err
 	}
