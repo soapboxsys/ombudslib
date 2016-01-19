@@ -11,6 +11,8 @@
             "blkTimestamp": 1451628000,
             "blkHeight": 391442,
             "endoCnt": 0
+            "loc": null
+            "endos": null
         },
         {
             "txid": "d7dc61a5f2faad981ccf497e1a83cee649a702887987bbf17404e801c59157d3",
@@ -21,6 +23,8 @@
             "blkTimestamp": 1452016000,
             "blkHeight": 391976,
             "endoCnt": 0
+            "loc": null
+            "endos": null
         }
     ],
 }
