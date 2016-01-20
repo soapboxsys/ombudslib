@@ -127,7 +127,7 @@ func PublishBulletin(client *btcrpcclient.Client, bltn *ombwire.Bulletin, params
 	if err != nil {
 		return nil, fmt.Errorf("Sending Tx failed: %s", err)
 	}
-	log.Println("Succesfully broadcast tx[%s]", txid.String())
+	log.Println("Succesfully broadcast Tx[%s]", txid.String())
 
 	return txid, nil
 }

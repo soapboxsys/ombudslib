@@ -70,11 +70,10 @@ type AuthorResp struct {
 
 // Holds meta information about the server
 type Status struct {
-	Version    string `json:"version"`
-	AppStart   int64  `json:"appStart"`
-	LatestBlk  int64  `json:"latestBlock"`
-	LatestBltn int64  `json:"latestBltn"`
-	BlkCount   uint64 `json:"blkCount"`
+	Version    string     `json:"version",omitempy`
+	AppStart   int64      `json:"appStart",omitempty`
+	LatestBltn int64      `json:"latestBltn",omitempty`
+	BlockTip   *BlockHead `json:"blkTip"`
 }
 
 // Holds summary information about a given board
