@@ -2,12 +2,15 @@
 package ombpublish
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcrpcclient"
 	"github.com/btcsuite/btcutil"
@@ -15,12 +18,12 @@ import (
 	"github.com/soapboxsys/ombudslib/ombwire"
 )
 
-var defaultDustAmnt = btcutil.Amount(600)
-var defaultSatPerByte = btcutil.Amount(175)
+var defaultDustAmnt = btcutil.Amount(5000)
+var defaultSatPerByte = btcutil.Amount(400)
 
 func NormalParams(net *chaincfg.Params, passphrase string) Params {
 	return Params{
-		MinSatToSpend: btcutil.Amount(100000),
+		MinSatToSpend: btcutil.Amount(150000),
 		DustAmnt:      defaultDustAmnt,
 		SatPerByte:    defaultSatPerByte,
 		activeNet:     net,
@@ -56,19 +59,27 @@ func PublishBulletin(client *btcrpcclient.Client, bltn *ombwire.Bulletin, params
 	unspentsToUse := []btcjson.ListUnspentResult{}
 	for _, unspent := range ulst {
 		if unspent.Spendable && sendAmnt < params.MinSatToSpend {
-			sendAmnt += btcutil.Amount(unspent.Amount)
+			a, _ := btcutil.NewAmount(unspent.Amount)
+			if a < params.MinSatToSpend {
+				continue
+			}
+			sendAmnt += a
 			unspentsToUse = append(unspentsToUse, unspent)
 		}
 	}
+	if sendAmnt < params.MinSatToSpend {
+		return nil, fmt.Errorf("Insufficient funds")
+	}
+
 	// Take those unspents create the input side
 	msgtx := wire.NewMsgTx()
 
-	for i, unspent := range unspentsToUse {
+	for _, unspent := range unspentsToUse {
 		empt := []byte{}
 		txid, _ := wire.NewShaHashFromStr(unspent.TxID)
 		outpoint := wire.OutPoint{
 			Hash:  *txid,
-			Index: uint32(i),
+			Index: uint32(unspent.Vout),
 		}
 		txIn := wire.NewTxIn(&outpoint, empt)
 		msgtx.AddTxIn(txIn)
@@ -84,10 +95,8 @@ func PublishBulletin(client *btcrpcclient.Client, bltn *ombwire.Bulletin, params
 	for _, txOut := range txOuts {
 		msgtx.AddTxOut(txOut)
 	}
-
 	// Create change Addr
-	addrStr := unspentsToUse[0].Address
-	changeAddr, err := btcutil.DecodeAddress(addrStr, params.activeNet)
+	changeAddr, err := client.GetAccountAddress("default")
 	if err != nil {
 		return nil, err
 	}
@@ -96,12 +105,23 @@ func PublishBulletin(client *btcrpcclient.Client, bltn *ombwire.Bulletin, params
 	change := sendAmnt - determineCost(msgtx.SerializeSize(), len(txOuts), params)
 
 	// Add Change TxOut to tx
-	txOut := wire.NewTxOut(int64(change), changeAddr.ScriptAddress())
+	pkScript, err := txscript.PayToAddrScript(changeAddr)
+	if err != nil {
+		return nil, err
+	}
+	txOut := wire.NewTxOut(int64(change), pkScript)
 	msgtx.AddTxOut(txOut)
 
 	if params.verbose {
 		spew.Printf("MsgTx Pre-Sig: %s\n", msgtx)
 	}
+
+	b := bytes.NewBuffer([]byte{})
+	err = msgtx.Serialize(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("This is the TX:\n%x\n", b)
 
 	// Unlock the wallet for 15 seconds
 	err = client.WalletPassphrase(params.passphrase, 15)
@@ -139,4 +159,14 @@ func determineCost(txSizeEst, numTxOuts int, params Params) btcutil.Amount {
 	dustSum := amnt(numTxOuts) * params.DustAmnt
 	fee := amnt(txSizeEst) * params.SatPerByte
 	return dustSum + fee
+}
+
+// randomly shuffle the list for more better results.
+func shuffle(src []btcjson.ListUnspentResult) []btcjson.ListUnspentResult {
+	dest := make([]btcjson.ListUnspentResult, len(src))
+	perm := rand.Perm(len(src))
+	for i, v := range perm {
+		dest[v] = src[i]
+	}
+	return dest
 }
