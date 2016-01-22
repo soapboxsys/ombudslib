@@ -28,7 +28,7 @@ func NormalParams(net *chaincfg.Params, passphrase string) Params {
 		SatPerByte:    defaultSatPerByte,
 		activeNet:     net,
 		passphrase:    passphrase,
-		verbose:       true,
+		Verbose:       true,
 	}
 }
 
@@ -39,7 +39,7 @@ type Params struct {
 	SatPerByte    btcutil.Amount // The fee to pay per byte
 	passphrase    string         // The wallets passphrase
 	activeNet     *chaincfg.Params
-	verbose       bool
+	Verbose       bool
 }
 
 // PublishBulletin uses the passed client
@@ -112,16 +112,14 @@ func PublishBulletin(client *btcrpcclient.Client, bltn *ombwire.Bulletin, params
 	txOut := wire.NewTxOut(int64(change), pkScript)
 	msgtx.AddTxOut(txOut)
 
-	if params.verbose {
-		spew.Printf("MsgTx Pre-Sig: %s\n", msgtx)
+	if params.Verbose {
+		b := bytes.NewBuffer([]byte{})
+		err = msgtx.Serialize(b)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Raw TX:\n%x\n", b)
 	}
-
-	b := bytes.NewBuffer([]byte{})
-	err = msgtx.Serialize(b)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("This is the TX:\n%x\n", b)
 
 	// Unlock the wallet for 15 seconds
 	err = client.WalletPassphrase(params.passphrase, 15)
@@ -133,12 +131,11 @@ func PublishBulletin(client *btcrpcclient.Client, bltn *ombwire.Bulletin, params
 	var ok bool
 	msgtx, ok, err = client.SignRawTransaction(msgtx)
 	if err != nil || !ok {
-		log.Println("Signing tx was not ok: %s, %s", ok, err)
+		log.Printf("Failed: Signing tx was not ok: %b, %s", ok, err)
 		return nil, err
 	}
 
-	log.Println("Signed the tx!")
-	if params.verbose {
+	if params.Verbose {
 		spew.Printf("MsgTx Post-Sig: %s\n", msgtx)
 	}
 
@@ -147,7 +144,6 @@ func PublishBulletin(client *btcrpcclient.Client, bltn *ombwire.Bulletin, params
 	if err != nil {
 		return nil, fmt.Errorf("Sending Tx failed: %s", err)
 	}
-	log.Println("Succesfully broadcast Tx[%s]", txid.String())
 
 	return txid, nil
 }
