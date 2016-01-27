@@ -87,3 +87,16 @@ func (db *PublicRecord) blockIsTip(tx *sql.Tx, sha *wire.ShaHash) error {
 	}
 	return nil
 }
+
+// DropAfterBlockBySha deletes all of the blocks after the passed sha in the
+// database.
+func (db *PublicRecord) DropAfterBlockBySha(sha *wire.ShaHash) error {
+	blk, err := db.GetBlock(sha)
+	if err != nil {
+		return err
+	}
+
+	query := "DELETE FROM blocks WHERE height > $1"
+	_, err = db.conn.Exec(query, blk.Head.Height)
+	return err
+}
