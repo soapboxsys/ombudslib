@@ -11,25 +11,28 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	peg_b, err := peg.Asset("new-year-blk.dat")
-	if err != nil {
-		t.Fatal(err)
-	}
+	assetNames := []string{"new-year-blk.dat", "testnet-peg-blk.dat"}
+	for _, name := range assetNames {
+		peg_b, err := peg.Asset(name)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	// Read the whole raw file and do a byte for bytes comparision
-	f, err := os.Open("new-year-blk.dat")
-	defer f.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
+		// Read the whole raw file and do a byte for bytes comparision
+		f, err := os.Open(name)
+		defer f.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	raw_b, err := ioutil.ReadAll(f)
-	if err != nil {
-		t.Fatal(err)
-	}
+		raw_b, err := ioutil.ReadAll(f)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	if !bytes.Equal(raw_b, peg_b) {
-		t.Fatal("Bytes in peg.Asset and ...blk.dat are different!")
+		if !bytes.Equal(raw_b, peg_b) {
+			t.Fatal("Bytes in peg.Asset and ...blk.dat are different!")
+		}
 	}
 }
 
@@ -52,5 +55,15 @@ func TestGetBlk(t *testing.T) {
 	if blk.Height() != startHeight {
 		t.Fatalf("Block height is wrong. [%d] & [%d]\n",
 			blk.Height(), startHeight)
+	}
+}
+
+func TestGetTestPeg(t *testing.T) {
+	sha, _ := wire.NewShaHashFromStr("00000000002251dfc4286569caff12b36c8aeff081498364910c50c28bda1d02")
+
+	pegblk := peg.GetTestStartBlock()
+	if !bytes.Equal(pegblk.Sha().Bytes(), sha.Bytes()) {
+		t.Fatalf("Testnet hash does not match:\nActual:\t\t%s\nIntended:\t%s",
+			pegblk.Sha().String(), sha.String())
 	}
 }

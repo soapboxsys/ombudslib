@@ -1,6 +1,8 @@
 package ombutil
 
 import (
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btclog"
 	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombwire"
@@ -18,7 +20,7 @@ type UBlock struct {
 // CreateUBlock parses a btcutil block and parses out the relevant records. If
 // logger is not nil, it is used to report strange problems as the functions
 // parses through a block.
-func CreateUBlock(blk *btcutil.Block, log btclog.Logger) *UBlock {
+func CreateUBlock(blk *btcutil.Block, log btclog.Logger, net *chaincfg.Params) *UBlock {
 	ublk := &UBlock{
 		Block:        blk,
 		Bulletins:    []*Bulletin{},
@@ -44,14 +46,14 @@ func CreateUBlock(blk *btcutil.Block, log btclog.Logger) *UBlock {
 
 		switch w := w.(type) {
 		case *ombwire.Bulletin:
-			bltn, err := NewBltn(w, tx, blk)
+			bltn, err := NewBltn(w, tx, blk, net)
 			if err != nil {
 				wLog("Creating bltn threw: %s", err)
 				continue
 			}
 			ublk.Bulletins = append(ublk.Bulletins, bltn)
 		case *ombwire.Endorsement:
-			endo, err := NewEndo(w, tx, blk)
+			endo, err := NewEndo(w, tx, blk, net)
 			if err != nil {
 				wLog("Creating endo threw: %s", err)
 				continue
@@ -67,6 +69,12 @@ func CreateUBlock(blk *btcutil.Block, log btclog.Logger) *UBlock {
 
 // PastPegDate determines if the passed block was created after the target peg
 // date after which entries can be added to the public record.
-func PastPegDate(blk *btcutil.Block) bool {
-	return blk.Height() > peg.StartHeight
+func PastPegDate(blk *btcutil.Block, net *chaincfg.Params) bool {
+	if net.Net == wire.MainNet {
+		return blk.Height() > peg.StartHeight
+	} else if net.Net == wire.TestNet3 {
+		return blk.Height() > peg.TestStartHeight
+	} else {
+		return false
+	}
 }

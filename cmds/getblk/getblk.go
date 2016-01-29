@@ -15,12 +15,17 @@ import (
 
 var node = flag.String("node", "", "The node to connect to")
 var target = flag.String("target", "", "The bitcoin block to get")
+var testnet = flag.Bool("testnet", false, "The Testnet3 flag")
 
 var bnet = wire.MainNet
 var pver = wire.ProtocolVersion
 
 func main() {
 	flag.Parse()
+
+	if *testnet {
+		bnet = wire.TestNet3
+	}
 
 	conn, err := net.DialTimeout("tcp", *node, 500*time.Millisecond)
 	if err != nil {

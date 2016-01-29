@@ -35,14 +35,14 @@ type Bulletin struct {
 
 // NewBltn takes what looks like a bulletin and prepares it for insertion into
 // the public record. If there any problems NewBltn throws an error.
-func NewBltn(w *ombwire.Bulletin, tx *btcutil.Tx, blk *btcutil.Block) (*Bulletin, error) {
+func NewBltn(w *ombwire.Bulletin, tx *btcutil.Tx, blk *btcutil.Block, net *chaincfg.Params) (*Bulletin, error) {
 	// Validate wire tx msg
 	if len(w.GetMessage()) < 1 {
 		return nil, fmt.Errorf("Wire msg has no content!")
 	}
 
 	// Parse author
-	author, err := ParseAuthor(tx.MsgTx(), &chaincfg.MainNetParams)
+	author, err := ParseAuthor(tx.MsgTx(), net)
 	if err != nil {
 		return nil, err
 	}

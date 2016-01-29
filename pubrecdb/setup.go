@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/wire"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
@@ -91,10 +92,19 @@ func InitDB(path string, params *chaincfg.Params) (*PublicRecord, error) {
 		return nil, err
 	}
 
-	// Insert the pegged starting block
-	pegBlk := peg.GetStartBlock()
-	if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
-		return nil, err
+	if params.Net == wire.MainNet {
+		// Insert the pegged starting block
+		pegBlk := peg.GetStartBlock()
+		if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
+			return nil, err
+		}
+	} else if params.Net == wire.TestNet3 {
+		pegBlk := peg.GetTestStartBlock()
+		if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, fmt.Errorf("No peg for non-default Bitcoin Net")
 	}
 
 	return prepareDB(db)

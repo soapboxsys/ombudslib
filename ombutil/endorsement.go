@@ -21,13 +21,13 @@ type Endorsement struct {
 
 // NewEndo functions very similarly to NewBltn. It bails out if there are any
 // problems with the passed wire, tx, or blk.
-func NewEndo(w *ombwire.Endorsement, tx *btcutil.Tx, blk *btcutil.Block) (*Endorsement, error) {
+func NewEndo(w *ombwire.Endorsement, tx *btcutil.Tx, blk *btcutil.Block, net *chaincfg.Params) (*Endorsement, error) {
 	// Check Bid is correct length
 	if len(w.GetBid()) != 32 {
 		return nil, fmt.Errorf("Endo's bid is wrong len")
 	}
 
-	author, err := ParseAuthor(tx.MsgTx(), &chaincfg.MainNetParams)
+	author, err := ParseAuthor(tx.MsgTx(), net)
 	if err != nil {
 		return nil, err
 	}
