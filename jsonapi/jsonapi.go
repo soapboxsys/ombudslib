@@ -135,6 +135,18 @@ func NewHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Reque
 	}
 }
 
+func BestTagsHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		tags, err := db.GetBestTags()
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, tags)
+	}
+}
+
 func StatusHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		blk, err := db.GetBlockTip()
@@ -169,9 +181,12 @@ func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 	r.HandleFunc(p+fmt.Sprintf("endo/{txid:%s}", sha2re), EndorsementHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("block/{hash:%s}", sha2re), BlockHandler(db))
 
-	// Aggregate handlers
+	// Paginated handlers
 	r.HandleFunc(p+fmt.Sprintf("tag/{tag:%s}", tagre), TagHandler(db))
 	r.HandleFunc(p+"new", NewHandler(db))
+
+	// Aggregate handlers
+	r.HandleFunc(p+"pop-tags", BestTagsHandler(db))
 
 	// Meta handlers
 	r.HandleFunc(p+"status", StatusHandler(db))

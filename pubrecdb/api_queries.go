@@ -2,6 +2,7 @@ package pubrecdb
 
 import (
 	"database/sql"
+	"sort"
 
 	"github.com/btcsuite/btcd/wire"
 	"github.com/soapboxsys/ombudslib/ombjson"
@@ -63,11 +64,24 @@ var (
 		ORDER BY blocks.height DESC
 		LIMIT 1
 	`
+
+	selectBestTagsSql string = `
+		SELECT tags.value, count(*), bulletins.timestamp 
+		FROM tags LEFT JOIN bulletins on tags.txid = bulletins.txid
+		GROUP BY tags.value
+		ORDER BY count(tags.value) DESC, bulletins.timestamp DESC
+		LIMIT $1
+	`
 )
 
 func prepareQueries(db *PublicRecord) error {
-
 	var err error
+
+	db.selectBestTags, err = db.conn.Prepare(selectBestTagsSql)
+	if err != nil {
+		return err
+	}
+
 	db.selectEndosByBid, err = db.conn.Prepare(selectEndosByBidSql)
 	if err != nil {
 		return err
@@ -220,6 +234,33 @@ func (db *PublicRecord) GetTag(tag ombutil.Tag) (*ombjson.BltnPage, error) {
 	}
 
 	return page, nil
+}
+
+// GetBestTag returns the 'best' tags as determined by a simple exponentional
+// formula that takes into account the number of times the tag has been used
+// and the first time the tag has been used.
+func (db *PublicRecord) GetBestTags() ([]*ombjson.Tag, error) {
+	tags := []*ombjson.Tag{}
+
+	rows, err := db.selectBestTags.Query(50)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var ts, count int64
+		var val string
+		err := rows.Scan(&val, &count, &ts)
+		if err != nil {
+			return tags, err
+		}
+		tag := ombjson.NewTag(val, count, ts)
+		tags = append(tags, &tag)
+	}
+	// Sort tags by score.
+	sort.Sort(ombjson.ByScore(tags))
+
+	return tags, nil
 }
 
 // GetBulletin returns a single bulletin as json that is identified by txid.

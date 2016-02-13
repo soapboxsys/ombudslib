@@ -85,6 +85,13 @@ type BoardSummary struct {
 	CreatedBy  string `json:"createdBy"`
 }
 
+type Tag struct {
+	Value   string `json:"val"`
+	FirstTs int64  `json:"ts"`
+	Count   int64  `json:"num"`
+	Score   int64  `json:"score"`
+}
+
 // An entire bulletin board that is sorted by default in ascending order
 type WholeBoard struct {
 	Summary   *BoardSummary `json:"summary"`

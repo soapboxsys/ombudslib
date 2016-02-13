@@ -31,6 +31,7 @@ type PublicRecord struct {
 	selectBlock       *sql.Stmt
 	selectBlockTip    *sql.Stmt
 	selectEndosByBid  *sql.Stmt
+	selectBestTags    *sql.Stmt
 
 	// Line-O-PROGRESS
 	selectBlockHead   *sql.Stmt
