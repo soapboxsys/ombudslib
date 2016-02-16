@@ -157,12 +157,16 @@ func TestGetAuthorResp(t *testing.T) {
 	}
 }
 
-func TestGetLocation(t *testing.T) {
+func TestGetNearbyBltns(t *testing.T) {
 	db, _ := SetupTestDB(true)
 
-	_, err := db.GetNearLocation(45.0, 44.0, 5.0)
+	b, err := db.GetNearbyBltns(45.0, 44.0, 5000000)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if len(b) != 5 {
+		log.Fatal(spw(b))
 	}
 }
 

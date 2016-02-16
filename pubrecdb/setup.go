@@ -34,6 +34,7 @@ type PublicRecord struct {
 	selectBestTags    *sql.Stmt
 	selectAuthorBtlns *sql.Stmt
 	selectAuthorEndos *sql.Stmt
+	selectNearbyBltns *sql.Stmt
 
 	// Line-O-PROGRESS
 	selectBlockHead   *sql.Stmt

@@ -1,6 +1,40 @@
 package pubrecdb
 
-import "math"
+import (
+	"math"
+
+	"github.com/soapboxsys/ombudslib/ombjson"
+)
+
+var (
+	selectNearbyBltns string = bltnSql + `
+		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
+		LEFT JOIN endorsements ON bulletins.txid = endorsements.bid
+		WHERE bulletins.latitude IS NOT NULL AND bulletins.longitude IS NOT NULL AND
+			dist($1, $2, bulletins.latitude, bulletins.longitude) < $3
+		GROUP BY bulletins.txid HAVING bulletins.txid NOT null
+		ORDER BY blocks.timestamp DESC
+	`
+)
+
+// GetNearbyBltns returns bulletins that were tagged with a location within r
+// meters of lat, lon. The bulletin are ordered by block timestamp and are NOT
+// sorted by distance from the point.
+func (db *PublicRecord) GetNearbyBltns(lat, lon, r float64) ([]*ombjson.Bulletin, error) {
+
+	rows, err := db.selectNearbyBltns.Query(lat, lon, r)
+	defer rows.Close()
+	if err != nil {
+		return []*ombjson.Bulletin{}, err
+	}
+
+	bltns, err := scanBltns(rows)
+	if err != nil {
+		return []*ombjson.Bulletin{}, err
+	}
+
+	return bltns, nil
+}
 
 // distance uses the distance formula derived using the spherical law of cosines
 // to reasonablely accurate approximations of the distances between 'a' and
