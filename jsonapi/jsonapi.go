@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/btcsuite/btcd/chaincfg"
@@ -174,6 +175,40 @@ func AuthorHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Re
 	}
 }
 
+func NearbyLocHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		latStr, _ := mux.Vars(request)["lat"]
+		lonStr, _ := mux.Vars(request)["lon"]
+		rStr, _ := mux.Vars(request)["r"]
+
+		var err error
+		var lat, lon, r float64
+
+		if lat, err = strconv.ParseFloat(latStr, 64); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		if lon, err = strconv.ParseFloat(lonStr, 64); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		if r, err = strconv.ParseFloat(rStr, 64); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		bltns, err := db.GetNearbyBltns(lat, lon, r)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, bltns)
+	}
+}
+
 func StatusHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		blk, err := db.GetBlockTip()
@@ -202,12 +237,17 @@ func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 	// A single day follows this format: DD-MM-YY
 	//dayre := `[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}`
 
+	// Pulls floats out of urls
+	l_re := `[-+]?(\d*[.])?\d+`
+	loc_suffix := fmt.Sprintf("loc/{lat:%s},{lon:%s},{r:%s}", l_re, l_re, l_re)
+
 	p := prefix
 	// Item handlers
 	r.HandleFunc(p+fmt.Sprintf("bltn/{txid:%s}", sha2re), BulletinHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("endo/{txid:%s}", sha2re), EndorsementHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("block/{hash:%s}", sha2re), BlockHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("author/{addr:%s}", addrgex), AuthorHandler(db))
+	r.HandleFunc(p+loc_suffix, NearbyLocHandler(db))
 
 	// Paginated handlers
 	r.HandleFunc(p+fmt.Sprintf("tag/{tag:%s}", tagre), TagHandler(db))
