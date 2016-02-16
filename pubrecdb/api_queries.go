@@ -2,6 +2,7 @@ package pubrecdb
 
 import (
 	"database/sql"
+	"log"
 	"sort"
 
 	"github.com/btcsuite/btcd/wire"
@@ -340,6 +341,22 @@ func (db *PublicRecord) GetAuthor(author btcutil.Address) (*ombjson.AuthorResp, 
 	}
 
 	return auth, nil
+}
+
+func (db *PublicRecord) GetNearLocation(lat, lon, distance float64) ([]*ombjson.Bulletin, error) {
+	bltns := []*ombjson.Bulletin{}
+
+	row := db.conn.QueryRow(`
+		SELECT pow(2, 20);
+	`)
+	var res float64
+	err := row.Scan(&res)
+	if err != nil {
+		return bltns, err
+	}
+	log.Println("Result of query was: %f", res)
+
+	return bltns, nil
 }
 
 func scanBltn(cursor scannable) (*ombjson.Bulletin, error) {

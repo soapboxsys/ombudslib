@@ -8,7 +8,7 @@ import (
 
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
-	_ "github.com/mattn/go-sqlite3"
+	sqlite "github.com/mattn/go-sqlite3"
 	"github.com/soapboxsys/ombudslib/ombwire/peg"
 )
 
@@ -122,9 +122,27 @@ func LoadDB(path string) (*PublicRecord, error) {
 	return prepareDB(db)
 }
 
+// createPubRec attaches the DB conn to the public record. That DB connection
+// must be initialiazed with custom SQL functions before anything else can
+// touch it.
 func createPubRec(path string) (*PublicRecord, error) {
+
+	sql.Register("sqlite3_custom", &sqlite.SQLiteDriver{
+		ConnectHook: func(conn *sqlite.SQLiteConn) error {
+			err := conn.RegisterFunc("pow", pow, true)
+			if err != nil {
+				return err
+			}
+			err = conn.RegisterFunc("dist", distance, true)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	})
+
 	path = filepath.Clean(path)
-	conn, err := sql.Open("sqlite3", path)
+	conn, err := sql.Open("sqlite3_custom", path)
 	if err != nil {
 		return nil, err
 	}

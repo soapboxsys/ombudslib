@@ -3,6 +3,7 @@ package pubrecdb_test
 import (
 	"database/sql"
 	"encoding/json"
+	"log"
 	"strings"
 	"testing"
 
@@ -153,6 +154,15 @@ func TestGetAuthorResp(t *testing.T) {
 	if len(authResp.Bulletins) != 5 || authResp.Summary.LastBlkTs != 1451606601 ||
 		len(authResp.Endorsements) != 1 {
 		t.Fatalf(spw(authResp))
+	}
+}
+
+func TestGetLocation(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	_, err := db.GetNearLocation(45.0, 44.0, 5.0)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
