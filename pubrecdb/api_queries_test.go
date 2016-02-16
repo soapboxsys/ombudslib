@@ -6,7 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/soapboxsys/ombudslib/ombutil"
 	"github.com/soapboxsys/ombudslib/ombwire"
@@ -134,6 +136,23 @@ func TestGetRange(t *testing.T) {
 
 	if len(page.Bulletins) != 5 {
 		t.Fatalf("Query failed: %s\n", spw(page))
+	}
+}
+
+func TestGetAuthorResp(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	net := chaincfg.MainNetParams
+	auth, _ := btcutil.DecodeAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy", &net)
+
+	authResp, err := db.GetAuthor(auth)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(authResp.Bulletins) != 5 || authResp.Summary.LastBlkTs != 1451606601 ||
+		len(authResp.Endorsements) != 1 {
+		t.Fatalf(spw(authResp))
 	}
 }
 

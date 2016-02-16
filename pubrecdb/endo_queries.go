@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombjson"
 )
 
@@ -24,6 +25,15 @@ var (
 		LEFT JOIN bulletins ON bulletins.txid = e.bid
 		WHERE e.txid = $1
 	`
+
+	selectAuthorEndosSql string = `
+		SELECT e.txid, e.author, e.bid, e.timestamp, e.block, 
+			   blocks.height, blocks.timestamp, bulletins.txid
+		FROM endorsements as e
+		LEFT JOIN blocks ON blocks.hash = e.block
+		LEFT JOIN bulletins ON bulletins.txid = e.bid
+		WHERE e.author = $1
+	`
 )
 
 // GetEndorsement returns a single json Endorsement. If the record does not
@@ -33,8 +43,20 @@ func (db *PublicRecord) GetEndorsement(txid *wire.ShaHash) (*ombjson.Endorsement
 	return scanEndo(row)
 }
 
+// GetEndosByBid returns all of the endorsements for a specific bulletin. This
+// is used by GetBulletin to fill out the endorsements a specific bulletin has
+// received.
 func (db *PublicRecord) GetEndosByBid(bid *wire.ShaHash) ([]*ombjson.Endorsement, error) {
 	rows, err := db.selectEndosByBid.Query(bid.String())
+	defer rows.Close()
+	if err != nil {
+		return []*ombjson.Endorsement{}, err
+	}
+	return scanEndos(rows)
+}
+
+func (db *PublicRecord) getAuthorEndos(author btcutil.Address) ([]*ombjson.Endorsement, error) {
+	rows, err := db.selectAuthorEndos.Query(author.String())
 	defer rows.Close()
 	if err != nil {
 		return []*ombjson.Endorsement{}, err

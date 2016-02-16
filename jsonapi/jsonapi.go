@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 	"github.com/gorilla/mux"
 	"github.com/soapboxsys/ombudslib/ombjson"
 	"github.com/soapboxsys/ombudslib/ombutil"
@@ -147,6 +149,31 @@ func BestTagsHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.
 	}
 }
 
+func AuthorHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		addrStr, _ := mux.Vars(request)["addr"]
+		// Try our best to decode the passed AddrStr. If we can't parse it.
+		// Drop it.
+		var author btcutil.Address
+		var err error
+		author, err = btcutil.DecodeAddress(addrStr, &chaincfg.MainNetParams)
+		if err != nil {
+			author, err = btcutil.DecodeAddress(addrStr, &chaincfg.TestNet3Params)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+		}
+		resp, err := db.GetAuthor(author)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, resp)
+	}
+}
+
 func StatusHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		blk, err := db.GetBlockTip()
@@ -167,7 +194,7 @@ func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 
 	r := mux.NewRouter()
 	sha2re := "([a-f]|[A-F]|[0-9]){64}"
-	//addrgex := "([a-z]|[A-Z]|[0-9]){30,35}"
+	addrgex := "([a-z]|[A-Z]|[0-9]){30,35}"
 	// Since the tag's path could be percent encoded we give it 3x wiggle room
 	// since a single byte in percent encoding is %EE.
 	tagre := ".{1,90}"
@@ -180,6 +207,7 @@ func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 	r.HandleFunc(p+fmt.Sprintf("bltn/{txid:%s}", sha2re), BulletinHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("endo/{txid:%s}", sha2re), EndorsementHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("block/{hash:%s}", sha2re), BlockHandler(db))
+	r.HandleFunc(p+fmt.Sprintf("author/{addr:%s}", addrgex), AuthorHandler(db))
 
 	// Paginated handlers
 	r.HandleFunc(p+fmt.Sprintf("tag/{tag:%s}", tagre), TagHandler(db))

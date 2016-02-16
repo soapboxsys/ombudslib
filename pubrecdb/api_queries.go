@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcutil"
 	"github.com/soapboxsys/ombudslib/ombjson"
 	"github.com/soapboxsys/ombudslib/ombutil"
 	"github.com/soapboxsys/ombudslib/ombwire/peg"
@@ -72,10 +73,28 @@ var (
 		ORDER BY count(tags.value) DESC, bulletins.timestamp DESC
 		LIMIT $1
 	`
+
+	selectAuthorBltnsSql string = bltnSql + `
+		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
+		LEFT JOIN endorsements ON bulletins.txid = endorsements.bid
+		WHERE bulletins.author = $1 
+		GROUP BY bulletins.txid HAVING bulletins.txid NOT null
+		ORDER BY blocks.timestamp DESC
+	`
 )
 
 func prepareQueries(db *PublicRecord) error {
 	var err error
+
+	db.selectAuthorEndos, err = db.conn.Prepare(selectAuthorEndosSql)
+	if err != nil {
+		return err
+	}
+
+	db.selectAuthorBltns, err = db.conn.Prepare(selectAuthorBltnsSql)
+	if err != nil {
+		return err
+	}
 
 	db.selectBestTags, err = db.conn.Prepare(selectBestTagsSql)
 	if err != nil {
@@ -281,6 +300,46 @@ func (db *PublicRecord) GetBulletin(txid *wire.ShaHash) (*ombjson.Bulletin, erro
 	bltn.Endorsements = endos
 
 	return bltn, nil
+}
+
+// getAuthorBltns just returns the bulletins that have been signed by the
+// passed bitcoin address.
+func (db *PublicRecord) getAuthorBltns(author btcutil.Address) ([]*ombjson.Bulletin, error) {
+	rows, err := db.selectAuthorBltns.Query(author.String())
+	if err != nil {
+		return []*ombjson.Bulletin{}, err
+	}
+	return scanBltns(rows)
+}
+
+// GetAuthor returns the bulletins and the endorsements a bitcoin address has
+// sent.
+func (db *PublicRecord) GetAuthor(author btcutil.Address) (*ombjson.AuthorResp, error) {
+
+	bltns, err := db.getAuthorBltns(author)
+	if err != nil {
+		return nil, err
+	}
+
+	endos, err := db.getAuthorEndos(author)
+	if err != nil {
+		return nil, err
+	}
+
+	auth := &ombjson.AuthorResp{
+		Bulletins:    bltns,
+		Endorsements: endos,
+	}
+
+	if len(bltns) > 0 {
+		auth.Summary = &ombjson.AuthorSummary{
+			Address:    author.String(),
+			LastBlkTs:  bltns[0].BlockRef.Timestamp,
+			FirstBlkTs: bltns[len(bltns)-1].BlockRef.Timestamp,
+		}
+	}
+
+	return auth, nil
 }
 
 func scanBltn(cursor scannable) (*ombjson.Bulletin, error) {

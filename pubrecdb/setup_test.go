@@ -41,9 +41,12 @@ func TestEmptySetupDB(t *testing.T) {
 }
 
 func TestSetupDB(t *testing.T) {
-	_, err := SetupTestDB(true)
+	db, err := SetupTestDB(true)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if db == nil {
+		t.Fatal("DB not initialized")
 	}
 }
 
@@ -181,6 +184,15 @@ func setupTestInsertEndos(db *PublicRecord) {
 	if err, _ := db.InsertEndorsement(endo); err != nil {
 		log.Fatal(err)
 	}
+
+	// endo(6) txid is:
+	// [c471a636cc5698cda96fdab9caa946e9c741d0bdda8636a292c12879d6620e01]
+	net := chaincfg.MainNetParams
+	auth, _ := btcutil.DecodeAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy", &net)
+	endo = fakeUEndoAuth(7, bid, auth)
+	if err, _ := db.InsertEndorsement(endo); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func fakeUBltn(seed int) *ombutil.Bulletin {
@@ -205,6 +217,20 @@ func fakeUEndo(seed int, bid *wire.ShaHash) *ombutil.Endorsement {
 	endo := &ombutil.Endorsement{
 		Tx:     fakeMsgTx(seed),
 		Author: auth,
+		Wire:   wireEndo,
+		Block:  pegBlk,
+	}
+	return endo
+}
+
+func fakeUEndoAuth(seed int, bid *wire.ShaHash, auth btcutil.Address) *ombutil.Endorsement {
+	wireEndo := fakeWireEndo(seed, bid)
+	pegBlk := peg.GetStartBlock()
+	authStr := ombutil.Author(auth.String())
+
+	endo := &ombutil.Endorsement{
+		Tx:     fakeMsgTx(seed),
+		Author: authStr,
 		Wire:   wireEndo,
 		Block:  pegBlk,
 	}

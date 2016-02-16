@@ -57,13 +57,13 @@ type Block struct {
 // Holds meta information about a single author
 type AuthorSummary struct {
 	Address    string `json:"addr"`
-	NumBltns   uint64 `json:"numBltns"`
 	FirstBlkTs int64  `json:"firstBlkTs,omitempty"`
+	LastBlkTs  int64  `json:"lastBlkTs,omitempty"`
 }
 
 // Contains info about an author and posts by that author
 type AuthorResp struct {
-	Author       *AuthorSummary `json:"author"`
+	Summary      *AuthorSummary `json:"summary"`
 	Bulletins    []*Bulletin    `json:"bltns",omitempty`
 	Endorsements []*Endorsement `json:"endos",omitempty`
 }
