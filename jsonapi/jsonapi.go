@@ -209,15 +209,22 @@ func NearbyLocHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http
 	}
 }
 
-func StatusHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+func StatusHandler(db *pubrecdb.PublicRecord, start time.Time) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		blk, err := db.GetBlockTip()
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 		}
 
+		uptime := time.Now().Sub(start)
+		ts := time.Now()
+
 		stat := &ombjson.Status{
-			BlockTip: blk.Head,
+			BlockTip:   blk.Head,
+			Uptime:     int64(uptime.Seconds()),
+			UptimeH:    uptime.String(),
+			Timestamp:  ts.Unix(),
+			TimestampH: ts.String(),
 		}
 		writeJson(w, stat)
 	}
@@ -257,7 +264,7 @@ func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 	r.HandleFunc(p+"pop-tags", BestTagsHandler(db))
 
 	// Meta handlers
-	r.HandleFunc(p+"status", StatusHandler(db))
+	r.HandleFunc(p+"status", StatusHandler(db, time.Now()))
 
 	return r
 }

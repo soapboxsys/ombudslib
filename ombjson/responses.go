@@ -70,10 +70,11 @@ type AuthorResp struct {
 
 // Holds meta information about the server
 type Status struct {
-	Version    string     `json:"version",omitempy`
-	AppStart   int64      `json:"appStart",omitempty`
-	LatestBltn int64      `json:"latestBltn",omitempty`
 	BlockTip   *BlockHead `json:"blkTip"`
+	Timestamp  int64      `json:"timestamp"`  // The unix time of "now"
+	TimestampH string     `json:"timestamph"` // The same as above but human readable
+	Uptime     int64      `json:"uptime"`     // The seconds since this object was created
+	UptimeH    string     `json:"uptimeh"`    // The same as above but human readable
 }
 
 // Holds summary information about a given board
@@ -90,10 +91,4 @@ type Tag struct {
 	FirstTs int64  `json:"ts"`
 	Count   int64  `json:"num"`
 	Score   int64  `json:"score"`
-}
-
-// An entire bulletin board that is sorted by default in ascending order
-type WholeBoard struct {
-	Summary   *BoardSummary `json:"summary"`
-	Bulletins []*Bulletin   `json:"bltns"`
 }
