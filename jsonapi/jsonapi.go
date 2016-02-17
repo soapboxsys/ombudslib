@@ -209,6 +209,18 @@ func NearbyLocHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http
 	}
 }
 
+func MostEndoHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		bltns, err := db.GetMostEndorsedBltns(10)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, bltns)
+	}
+}
+
 func StatusHandler(db *pubrecdb.PublicRecord, start time.Time) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		blk, err := db.GetBlockTip()
@@ -262,6 +274,7 @@ func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
 
 	// Aggregate handlers
 	r.HandleFunc(p+"pop-tags", BestTagsHandler(db))
+	r.HandleFunc(p+"most-endo", MostEndoHandler(db))
 
 	// Meta handlers
 	r.HandleFunc(p+"status", StatusHandler(db, time.Now()))
