@@ -23,24 +23,24 @@ type PublicRecord struct {
 	maxQueryLimit int
 
 	// Precompiled SQL selects
-	selectBltn        *sql.Stmt
-	selectTag         *sql.Stmt
-	selectEndo        *sql.Stmt
-	selectBltnsHeight *sql.Stmt
-	findHeight        *sql.Stmt
-	selectBlock       *sql.Stmt
-	selectBlockTip    *sql.Stmt
-	selectEndosByBid  *sql.Stmt
-	selectBestTags    *sql.Stmt
-	selectAuthorBtlns *sql.Stmt
-	selectAuthorEndos *sql.Stmt
-	selectNearbyBltns *sql.Stmt
+	selectBltn          *sql.Stmt
+	selectTag           *sql.Stmt
+	selectEndo          *sql.Stmt
+	selectBltnsHeight   *sql.Stmt
+	findHeight          *sql.Stmt
+	selectBlock         *sql.Stmt
+	selectBlockTip      *sql.Stmt
+	selectEndosByBid    *sql.Stmt
+	selectBestTags      *sql.Stmt
+	selectAuthorBltns   *sql.Stmt
+	selectAuthorEndos   *sql.Stmt
+	selectNearbyBltns   *sql.Stmt
+	selectMostEndoBltns *sql.Stmt
 
 	// Line-O-PROGRESS
 	selectBlockHead   *sql.Stmt
 	selectBlockBltns  *sql.Stmt
 	selectAuthor      *sql.Stmt
-	selectAuthorBltns *sql.Stmt
 	selectBlacklist   *sql.Stmt
 	selectAllBoards   *sql.Stmt
 	selectRecentConf  *sql.Stmt
@@ -96,21 +96,10 @@ func InitDB(path string, params *chaincfg.Params) (*PublicRecord, error) {
 		return nil, err
 	}
 
-	if params.Net == wire.MainNet {
-		// Insert the pegged starting block
-		pegBlk := peg.GetStartBlock()
-		if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
-			return nil, err
-		}
-	} else if params.Net == wire.TestNet3 {
-		pegBlk := peg.GetTestStartBlock()
-		if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, fmt.Errorf("No peg for non-default Bitcoin Net")
+	err = db.InsertGenesisBlk(params.Net)
+	if err != nil {
+		return nil, err
 	}
-
 	return prepareDB(db)
 }
 
@@ -166,7 +155,7 @@ func prepareDB(db *PublicRecord) (*PublicRecord, error) {
 
 	db.maxQueryLimit = defaultMaxQueryLimit
 
-	if err := execPragma(db); err != nil {
+	if err := ExecPragma(db, true); err != nil {
 		return nil, fmt.Errorf("Pragma defs failed: %s", err)
 	}
 
@@ -185,17 +174,48 @@ func prepareDB(db *PublicRecord) (*PublicRecord, error) {
 	return db, nil
 }
 
-// execPragma executes directives that are needed for the write side of the SQL
+// ExecPragma executes directives that are needed for the write side of the SQL
 // conn to enforce high quality (and secure!) sql statements.
-func execPragma(db *PublicRecord) error {
+func ExecPragma(db *PublicRecord, on bool) error {
 	// The following pragmas define the operation of the sqlite3 conn. This
 	// does important things: it enforces foreign key constraints, ...
-	pragmas := `
-	PRAGMA foreign_keys=ON;
-	`
+	var s = "ON"
+	if !on {
+		s = "OFF"
+	}
+
+	pragmas := fmt.Sprintf(`PRAGMA foreign_keys=%s;`, s)
 
 	if _, err := db.conn.Exec(pragmas); err != nil {
 		return err
+	}
+	return nil
+}
+
+// EmptyTables deletes all of the rows from the public record
+func (db *PublicRecord) EmptyTables() error {
+	txSql := `DELETE FROM blocks;`
+	_, err := db.conn.Exec(txSql)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *PublicRecord) InsertGenesisBlk(net wire.BitcoinNet) error {
+	if net == wire.MainNet {
+		// Insert the pegged starting block
+		pegBlk := peg.GetStartBlock()
+		if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
+			return err
+		}
+	} else if net == wire.TestNet3 {
+		pegBlk := peg.GetTestStartBlock()
+		if err, ok := db.InsertBlockHead(pegBlk); !ok || err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("No peg for non-default Bitcoin Net")
 	}
 	return nil
 }

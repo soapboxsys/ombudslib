@@ -3,7 +3,7 @@ package pubrecdb_test
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -52,8 +52,8 @@ func TestGetBulletin(t *testing.T) {
 	}
 
 	// Check that num endos is right
-	if bltn.NumEndos != 2 {
-		t.Fatal(spew.Sprintf("bltn(4) query returned %s", bltn))
+	if bltn.NumEndos != 3 {
+		t.Fatal(spew.Sdump("bltn(4) query returned:", bltn))
 	}
 
 }
@@ -94,9 +94,9 @@ func TestNilLocBulletin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := spw(b)
+	s := fmt.Sprintf("%s", b)
 	if !strings.Contains(s, `"loc":null,`) {
-		t.Fatalf("Output json does not comform to spec:\n %s", s)
+		t.Fatalf("Output json does not comform to spec:\n %s", spw(jsonBltn))
 	}
 }
 
@@ -160,16 +160,30 @@ func TestGetAuthorResp(t *testing.T) {
 func TestGetNearbyBltns(t *testing.T) {
 	db, _ := SetupTestDB(true)
 
-	b, err := db.GetNearbyBltns(45.0, 44.0, 5000000)
+	b, err := db.GetNearbyBltns(45.0, 44.0, 20000)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	if len(b) != 5 {
-		log.Fatal(spw(b))
+		t.Fatal(spw(b))
 	}
 }
 
+func TestGetMostEndorsedBltns(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	bltns, err := db.GetMostEndorsedBltns(100)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(bltns) != 1 {
+		t.Fatalf(spw(bltns))
+	}
+
+}
+
 func spw(t interface{}) string {
-	return spew.Sprintf("%s\n", t)
+	return spew.Sdump(t)
 }

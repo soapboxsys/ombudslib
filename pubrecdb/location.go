@@ -18,11 +18,10 @@ var (
 )
 
 // GetNearbyBltns returns bulletins that were tagged with a location within r
-// meters of lat, lon. The bulletin are ordered by block timestamp and are NOT
-// sorted by distance from the point.
+// kilometers of lat, lon. The bulletin are ordered by block timestamp and are
+// NOT sorted by distance from the point.
 func (db *PublicRecord) GetNearbyBltns(lat, lon, r float64) ([]*ombjson.Bulletin, error) {
-
-	rows, err := db.selectNearbyBltns.Query(lat, lon, r)
+	rows, err := db.selectNearbyBltns.Query(lat, lon, r*1000)
 	defer rows.Close()
 	if err != nil {
 		return []*ombjson.Bulletin{}, err

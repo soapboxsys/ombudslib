@@ -16,21 +16,37 @@ import (
 )
 
 var tst_blk_a *btcutil.Block
+var testdb *PublicRecord
 
 // SetupTestDB exports setupTestDB for tests that live inside pubrecdb.
 func SetupTestDB(add_rows bool) (*PublicRecord, error) {
-	db, err := InitDB(getPath(), &chaincfg.MainNetParams)
+	var err error
+	if testdb == nil {
+		testdb, err = InitDB(getPath(), &chaincfg.MainNetParams)
+	}
+
 	if err != nil {
 		panic(err)
 	}
 
+	testdb.EmptyTables()
+	if err = ExecPragma(testdb, false); err != nil {
+		panic(err)
+	}
+	err = testdb.InsertGenesisBlk(chaincfg.MainNetParams.Net)
+	if err != nil {
+		panic(err)
+	}
+	if err = ExecPragma(testdb, true); err != nil {
+		panic(err)
+	}
 	if add_rows {
-		setupTestInsertBlocks(db)
-		setupTestInsertBltns(db)
-		setupTestInsertEndos(db)
+		setupTestInsertBlocks(testdb)
+		setupTestInsertBltns(testdb)
+		setupTestInsertEndos(testdb)
 	}
 
-	return db, nil
+	return testdb, nil
 }
 
 func TestEmptySetupDB(t *testing.T) {
@@ -48,12 +64,12 @@ func TestSetupDB(t *testing.T) {
 	if db == nil {
 		t.Fatal("DB not initialized")
 	}
-}
-
-func TestInitDB(t *testing.T) {
-	_, err := InitDB(getPath(), &chaincfg.MainNetParams)
+	blk, err := db.GetBlockTip()
 	if err != nil {
 		t.Fatal(err)
+	}
+	if blk.Head.Hash != "c29afa6a9c333113f24d09368620c1eeb0943c65b92dc647cf80a51610a876d2" {
+		t.Fatal(spw(blk))
 	}
 }
 

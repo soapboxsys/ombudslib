@@ -81,10 +81,23 @@ var (
 		GROUP BY bulletins.txid HAVING bulletins.txid NOT null
 		ORDER BY blocks.timestamp DESC
 	`
+
+	selectMostEndoBltnsSql string = bltnSql + `
+		FROM bulletins LEFT JOIN blocks ON bulletins.block = blocks.hash
+		INNER JOIN endorsements ON bulletins.txid = endorsements.bid
+		GROUP BY bulletins.txid
+		ORDER BY count(endorsements.txid) DESC
+		LIMIT $1
+	`
 )
 
 func prepareQueries(db *PublicRecord) error {
 	var err error
+
+	db.selectMostEndoBltns, err = db.conn.Prepare(selectMostEndoBltnsSql)
+	if err != nil {
+		return err
+	}
 
 	db.selectNearbyBltns, err = db.conn.Prepare(selectNearbyBltns)
 	if err != nil {
@@ -260,9 +273,9 @@ func (db *PublicRecord) GetTag(tag ombutil.Tag) (*ombjson.BltnPage, error) {
 	return page, nil
 }
 
-// GetBestTag returns the 'best' tags as determined by a simple exponentional
+// GetBestTag returns the 'best' tags as determined by a simple geometric
 // formula that takes into account the number of times the tag has been used
-// and the first time the tag has been used.
+// and the first time the tag was seen in the record.
 func (db *PublicRecord) GetBestTags() ([]*ombjson.Tag, error) {
 	tags := []*ombjson.Tag{}
 
@@ -345,6 +358,23 @@ func (db *PublicRecord) GetAuthor(author btcutil.Address) (*ombjson.AuthorResp, 
 	}
 
 	return auth, nil
+}
+
+// GetMostEndorsedBltns returns a list of bltns sorted by number of
+// endorsements received. It does not return bltns with 0 endorsements.
+func (db *PublicRecord) GetMostEndorsedBltns(lim int) ([]*ombjson.Bulletin, error) {
+	rows, err := db.selectMostEndoBltns.Query(lim)
+	defer rows.Close()
+	if err != nil {
+		return []*ombjson.Bulletin{}, err
+	}
+
+	bltns, err := scanBltns(rows)
+	if err != nil {
+		return []*ombjson.Bulletin{}, err
+	}
+
+	return bltns, nil
 }
 
 func scanBltn(cursor scannable) (*ombjson.Bulletin, error) {
