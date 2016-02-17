@@ -138,6 +138,10 @@ func TestGetRange(t *testing.T) {
 	if len(page.Bulletins) != 5 {
 		t.Fatalf("Query failed: %s\n", spw(page))
 	}
+
+	if len(page.Endorsements) != 3 {
+		t.Fatalf("Query failed: %s\n", spw(page))
+	}
 }
 
 func TestGetAuthorResp(t *testing.T) {

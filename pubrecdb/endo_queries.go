@@ -34,7 +34,30 @@ var (
 		LEFT JOIN bulletins ON bulletins.txid = e.bid
 		WHERE e.author = $1
 	`
+	selectEndosByHeightSql string = `
+		SELECT e.txid, e.author, e.bid, e.timestamp, e.block, 
+			   blocks.height, blocks.timestamp, bulletins.txid
+		FROM endorsements as e
+		LEFT JOIN blocks ON blocks.hash = e.block
+		LEFT JOIN bulletins ON bulletins.txid = e.bid
+		WHERE blocks.height <= $1 AND blocks.height > $2
+	`
 )
+
+// GetEndosByHeight returns all of the endorsements between start and
+// stop where anything stored at the stop height is excluded
+func (db *PublicRecord) GetEndosByHeight(startH, stopH int32) ([]*ombjson.Endorsement, error) {
+	rows, err := db.selectEndosByHeight.Query(startH, stopH)
+	defer rows.Close()
+	if err != nil {
+		return []*ombjson.Endorsement{}, err
+	}
+	endos, err := scanEndos(rows)
+	if err != nil {
+		return []*ombjson.Endorsement{}, err
+	}
+	return endos, nil
+}
 
 // GetEndorsement returns a single json Endorsement. If the record does not
 // exist the method throws sql.ErrNoRows

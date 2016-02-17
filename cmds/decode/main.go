@@ -82,5 +82,10 @@ func main() {
 		log.Fatalf("Decoding wire type failed with: %s", err)
 	}
 
-	spew.Printf("SUCCESS! Decoded Ombuds Record:\n%s\n", record)
+	fmt.Println("SUCCESS! Decoded Ombuds Record:")
+	spew.Dump(record)
+	switch r := record.(type) {
+	case *ombwire.Endorsement:
+		fmt.Printf("Bid: [%x]", r.Bid)
+	}
 }

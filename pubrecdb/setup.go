@@ -36,6 +36,7 @@ type PublicRecord struct {
 	selectAuthorEndos   *sql.Stmt
 	selectNearbyBltns   *sql.Stmt
 	selectMostEndoBltns *sql.Stmt
+	selectEndosByHeight *sql.Stmt
 
 	// Line-O-PROGRESS
 	selectBlockHead   *sql.Stmt

@@ -2,6 +2,8 @@ package pubrecdb
 
 import (
 	"database/sql"
+	"encoding/hex"
+	"fmt"
 
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
@@ -200,16 +202,16 @@ func (db *PublicRecord) insertEndorsement(tx *sql.Tx, endo *ombutil.Endorsement)
 	txid := endo.Tx.TxSha().String()
 	blkHash := endo.Block.Sha().String()
 
-	h, err := wire.NewShaHash(endo.Wire.GetBid())
-	if err != nil {
-		return err
+	bid_bytes := endo.Wire.GetBid()
+	if len(bid_bytes) != wire.HashSize {
+		return fmt.Errorf("Bid length incorrect")
 	}
 
-	bid := h.String()
+	bid := hex.EncodeToString(bid_bytes)
 	auth := string(endo.Author)
 	time := endo.Wire.GetTimestamp()
 
-	_, err = tx.Stmt(db.insertEndorsementStmt).Exec(txid, blkHash, bid, auth, time)
+	_, err := tx.Stmt(db.insertEndorsementStmt).Exec(txid, blkHash, bid, auth, time)
 	if err != nil {
 		return err
 	}

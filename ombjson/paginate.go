@@ -7,8 +7,8 @@ type BltnPage struct {
 }
 
 type Page struct {
-	Start        string      `json:"start"`
-	Stop         string      `json:"stop"`
-	Bulletins    []*Bulletin `json:"bulletins"`
-	Endorsements []*Bulletin `json:"endorsements"`
+	Start        string         `json:"start"`
+	Stop         string         `json:"stop"`
+	Bulletins    []*Bulletin    `json:"bulletins"`
+	Endorsements []*Endorsement `json:"endorsements"`
 }

@@ -93,6 +93,7 @@ var (
 
 func prepareQueries(db *PublicRecord) error {
 	var err error
+	db.selectEndosByHeight, err = db.conn.Prepare(selectEndosByHeightSql)
 
 	db.selectMostEndoBltns, err = db.conn.Prepare(selectMostEndoBltnsSql)
 	if err != nil {
@@ -172,8 +173,10 @@ func (db *PublicRecord) GetLatestPage() (*ombjson.Page, error) {
 
 	pegBlk := peg.GetStartBlock()
 
+	startH := tipBlk.Head.Height
+	stopH := pegBlk.Height() - 1
 	// Query for bltns between heights
-	rows, err := db.selectBltnsHeight.Query(tipBlk.Head.Height, pegBlk.Height()-1)
+	rows, err := db.selectBltnsHeight.Query(startH, stopH)
 	defer rows.Close()
 	if err != nil {
 		return nil, err
@@ -184,25 +187,19 @@ func (db *PublicRecord) GetLatestPage() (*ombjson.Page, error) {
 		return nil, err
 	}
 
+	endos, err := db.GetEndosByHeight(startH, stopH)
+	if err != nil {
+		return nil, err
+	}
+
 	page := &ombjson.Page{
-		Start:     tipBlk.Head.Hash,
-		Stop:      pegBlk.Sha().String(),
-		Bulletins: bltns,
+		Start:        tipBlk.Head.Hash,
+		Stop:         pegBlk.Sha().String(),
+		Bulletins:    bltns,
+		Endorsements: endos,
 	}
 
 	return page, nil
-}
-
-func scanBltns(rows *sql.Rows) ([]*ombjson.Bulletin, error) {
-	bltns := []*ombjson.Bulletin{}
-	for rows.Next() {
-		bltn, err := scanBltn(rows)
-		if err != nil {
-			return []*ombjson.Bulletin{}, err
-		}
-		bltns = append(bltns, bltn)
-	}
-	return bltns, nil
 }
 
 // QueryRange returns all of the bulletins and endorsements within the
@@ -230,10 +227,17 @@ func (db *PublicRecord) QueryRange(start, stop *wire.ShaHash) (*ombjson.Page, er
 		return nil, err
 	}
 
+	// TODO Query for endos between heights
+	endos, err := db.GetEndosByHeight(startH, stopH)
+	if err != nil {
+		return nil, err
+	}
+
 	page := &ombjson.Page{
-		Start:     start.String(),
-		Stop:      stop.String(),
-		Bulletins: bltns,
+		Start:        start.String(),
+		Stop:         stop.String(),
+		Bulletins:    bltns,
+		Endorsements: endos,
 	}
 
 	return page, nil
@@ -411,6 +415,18 @@ func scanBltn(cursor scannable) (*ombjson.Bulletin, error) {
 	}
 
 	return bltn, nil
+}
+
+func scanBltns(rows *sql.Rows) ([]*ombjson.Bulletin, error) {
+	bltns := []*ombjson.Bulletin{}
+	for rows.Next() {
+		bltn, err := scanBltn(rows)
+		if err != nil {
+			return []*ombjson.Bulletin{}, err
+		}
+		bltns = append(bltns, bltn)
+	}
+	return bltns, nil
 }
 
 type scannable interface {

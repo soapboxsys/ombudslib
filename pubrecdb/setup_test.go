@@ -1,6 +1,7 @@
 package pubrecdb_test
 
 import (
+	"encoding/hex"
 	"log"
 	"os"
 	"path"
@@ -185,7 +186,9 @@ func setupTestInsertBltns(db *PublicRecord) {
 func setupTestInsertEndos(db *PublicRecord) {
 
 	// All endorsements contained within point to bltn(4)
-	bid := newSha("c19fbeacb46e865bfee6db89e9b0a41019079efa305b477d14a35945442e9f45")
+	bid_r, _ := hex.DecodeString("c19fbeacb46e865bfee6db89e9b0a41019079efa305b477d14a35945442e9f45")
+	bid := &wire.ShaHash{}
+	bid.SetBytes(bid_r)
 
 	// endo(5) txid is:
 	// [4bf52e816c845b40f71209e611fc3a1d352526d57f722a4c5fad7d8558611be3]
