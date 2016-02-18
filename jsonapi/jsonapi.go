@@ -246,7 +246,7 @@ type ApiFacts struct {
 	UserAgent     string `json:"user-agent",omitempty`
 	Operator      string `json:"operator",omitempty`
 	Location      string `json:"location",omitempty`
-	Administrator string `json:"location",omitempty`
+	Administrator string `json:"admin",omitempty`
 	ContactInst   string `json:"HowToReach",omitempty`
 }
 
