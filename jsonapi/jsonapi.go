@@ -242,9 +242,29 @@ func StatusHandler(db *pubrecdb.PublicRecord, start time.Time) func(http.Respons
 	}
 }
 
+type ApiFacts struct {
+	UserAgent     string `json:"user-agent",omitempty`
+	Operator      string `json:"operator",omitempty`
+	Location      string `json:"location",omitempty`
+	Administrator string `json:"location",omitempty`
+	ContactInst   string `json:"HowToReach",omitempty`
+}
+
+func AddApiFacts(who ApiFacts, prefix string, router *mux.Router) {
+	f := func(w http.ResponseWriter, request *http.Request) {
+		who.UserAgent = "ombudslib/jsonapi"
+		writeJson(w, who)
+	}
+	router.HandleFunc(prefix+"whoami", f)
+}
+
+func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
+	return Router(prefix, db)
+}
+
 // returns the http handler initialized with the api's routes. The prefix should
 // start and end with slashes. For example /api/ is a good prefix.
-func Handler(prefix string, db *pubrecdb.PublicRecord) http.Handler {
+func Router(prefix string, db *pubrecdb.PublicRecord) *mux.Router {
 
 	r := mux.NewRouter()
 	sha2re := "([a-f]|[A-F]|[0-9]){64}"
