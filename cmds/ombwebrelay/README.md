@@ -15,4 +15,7 @@ But, if you would like to see how it works on its own, use this command to insta
 > go get -u -v github.com/soapboxsys/ombwebrelay
 ```
 
+Becoming a Relay Operator
+-------------------------
 
+Running a relay is the best way you can support the network.
