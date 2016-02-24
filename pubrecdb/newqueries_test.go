@@ -15,8 +15,8 @@ func TestGetBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if a_blk.Head.Hash != a_hash.String() {
-		spw(a_blk)
+	if a_blk.Head.Hash != a_hash.String() && len(a_blk.Bulletins) != 1 {
+		t.Fatal(spw(a_blk))
 	}
 
 	zero := newSha("0000000000000000000000000000000000000000000000000000000000000000")

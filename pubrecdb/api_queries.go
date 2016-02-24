@@ -176,13 +176,7 @@ func (db *PublicRecord) GetLatestPage() (*ombjson.Page, error) {
 	startH := tipBlk.Head.Height
 	stopH := pegBlk.Height() - 1
 	// Query for bltns between heights
-	rows, err := db.selectBltnsHeight.Query(startH, stopH)
-	defer rows.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	bltns, err := scanBltns(rows)
+	bltns, err := db.getBltnsByHeight(startH, stopH)
 	if err != nil {
 		return nil, err
 	}

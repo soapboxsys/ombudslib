@@ -57,11 +57,51 @@ func scanBlockHead(cursor scannable) (*ombjson.Block, error) {
 	return blk, nil
 }
 
+func (db *PublicRecord) getBltnsByHeight(startH, stopH int32) ([]*ombjson.Bulletin, error) {
+	// Query for bltns between heights
+	rows, err := db.selectBltnsHeight.Query(startH, stopH)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	bltns, err := scanBltns(rows)
+	if err != nil {
+		return nil, err
+	}
+	return bltns, nil
+}
+
+func (db *PublicRecord) getBlockBltns(height int32) ([]*ombjson.Bulletin, error) {
+	return db.getBltnsByHeight(height, height-1)
+}
+
+func (db *PublicRecord) getBlockEndos(height int32) ([]*ombjson.Endorsement, error) {
+	return db.GetEndosByHeight(height, height-1)
+}
+
 // GetBlock returns the block in the record specified by 'hash'. If it is not
 // present then sql.ErrNoRows is returned.
 func (db *PublicRecord) GetBlock(hash *wire.ShaHash) (*ombjson.Block, error) {
 	row := db.selectBlock.QueryRow(hash.String())
-	return scanBlockHead(row)
+	block, err := scanBlockHead(row)
+	if err != nil {
+		return &ombjson.Block{}, err
+	}
+
+	bltns, err := db.getBlockBltns(block.Head.Height)
+	if err != nil {
+		return &ombjson.Block{}, err
+	}
+
+	endos, err := db.getBlockEndos(block.Head.Height)
+	if err != nil {
+		return &ombjson.Block{}, err
+	}
+
+	block.Bulletins = bltns
+	block.Endorsements = endos
+	return block, nil
 }
 
 // GetBlockTip works exactly the same as GetBlock except that the query always
