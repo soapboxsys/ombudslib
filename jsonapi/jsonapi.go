@@ -138,6 +138,20 @@ func NewHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Reque
 	}
 }
 
+func NewStatsHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		now := time.Now()
+		// Look back one day
+		yesterday := now.Add(-(time.Hour * 24))
+		stats, err := db.GetStatistics(yesterday, now)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		writeJson(w, stats)
+	}
+}
+
 func BestTagsHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, request *http.Request) {
 		tags, err := db.GetBestTags()
@@ -298,6 +312,7 @@ func Router(prefix string, db *pubrecdb.PublicRecord) *mux.Router {
 
 	// Meta handlers
 	r.HandleFunc(p+"status", StatusHandler(db, time.Now()))
+	r.HandleFunc(p+"new/statistics", NewStatsHandler(db))
 
 	return r
 }

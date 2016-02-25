@@ -1,5 +1,12 @@
 package ombjson
 
+type Tag struct {
+	Value   string `json:"val"`
+	FirstTs int64  `json:"ts"`
+	Count   int64  `json:"num"`
+	Score   int64  `json:"score"`
+}
+
 func NewTag(value string, cnt, ts int64) Tag {
 	s := tagScore(cnt, ts)
 	return Tag{

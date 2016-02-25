@@ -86,9 +86,11 @@ type BoardSummary struct {
 	CreatedBy  string `json:"createdBy"`
 }
 
-type Tag struct {
-	Value   string `json:"val"`
-	FirstTs int64  `json:"ts"`
-	Count   int64  `json:"num"`
-	Score   int64  `json:"score"`
+// Holds statistics about the public record
+type Statistics struct {
+	StartTs  int64 `json:"startTs"`
+	StopTs   int64 `json:"stopTs"`
+	NumBlks  int64 `json:"numBlks"`
+	NumBltns int64 `json:"numBltns"`
+	NumEndos int64 `json:"numEndos"`
 }

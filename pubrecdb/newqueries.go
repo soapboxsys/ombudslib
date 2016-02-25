@@ -3,6 +3,7 @@ package pubrecdb
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/btcsuite/btcd/wire"
 	"github.com/soapboxsys/ombudslib/ombjson"
@@ -130,4 +131,44 @@ func (db *PublicRecord) FindHeight(hash *wire.ShaHash) (int32, error) {
 		return -1, err
 	}
 	return height, nil
+}
+
+var computeStatisticsSql = `
+SELECT 
+	( 
+		SELECT COUNT(*) FROM bulletins 
+		WHERE bulletins.timestamp > $1 AND bulletins.timestamp <= $2
+	) as bltn_cnt,
+	( 
+		SELECT COUNT(*) FROM endorsements 
+		WHERE endorsements.timestamp > $1 AND endorsements.timestamp <= $2
+	) as endo_cnt,
+	( 
+		SELECT COUNT(*) FROM blocks 
+		WHERE blocks.timestamp > $1 AND blocks.timestamp <= $2
+	) as blk_cnt
+`
+
+// GetStatistics returns information about some continous period of time over
+// which records and blocks were stored in the public record. Currently it only
+// produces counts, but one day it will produce interesting facts for the
+// scientists to measure.
+func (db *PublicRecord) GetStatistics(start, fin time.Time) (*ombjson.Statistics, error) {
+
+	empt := &ombjson.Statistics{}
+	row := db.computeStatistics.QueryRow(start.Unix(), fin.Unix())
+
+	var nBltns, nEndos, nBlks int64
+	err := row.Scan(&nBltns, &nEndos, &nBlks)
+	if err != nil {
+		return empt, err
+	}
+	stat := &ombjson.Statistics{
+		StartTs:  start.Unix(),
+		StopTs:   fin.Unix(),
+		NumBltns: nBltns,
+		NumEndos: nEndos,
+		NumBlks:  nBlks,
+	}
+	return stat, nil
 }

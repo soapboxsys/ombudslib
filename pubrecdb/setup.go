@@ -60,7 +60,8 @@ type PublicRecord struct {
 	deleteBlockStmt *sql.Stmt
 
 	// Utility queries
-	blockIsTipStmt *sql.Stmt
+	blockIsTipStmt    *sql.Stmt
+	computeStatistics *sql.Stmt
 }
 
 // Creates a DB at the desired path or drops an existing one and recreates a

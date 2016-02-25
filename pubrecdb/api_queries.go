@@ -93,7 +93,16 @@ var (
 
 func prepareQueries(db *PublicRecord) error {
 	var err error
+
+	db.computeStatistics, err = db.conn.Prepare(computeStatisticsSql)
+	if err != nil {
+		return err
+	}
+
 	db.selectEndosByHeight, err = db.conn.Prepare(selectEndosByHeightSql)
+	if err != nil {
+		return err
+	}
 
 	db.selectMostEndoBltns, err = db.conn.Prepare(selectMostEndoBltnsSql)
 	if err != nil {

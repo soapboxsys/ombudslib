@@ -3,6 +3,7 @@ package pubrecdb_test
 import (
 	"database/sql"
 	"testing"
+	"time"
 )
 
 func TestGetBlock(t *testing.T) {
@@ -39,5 +40,21 @@ func TestGetBlockTip(t *testing.T) {
 
 	if tipBlk.Head.Hash != tipHash {
 		t.Fatalf(spw(tipBlk))
+	}
+}
+
+func TestGetStatistics(t *testing.T) {
+	db, _ := SetupTestDB(true)
+
+	before := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
+	after := time.Date(2020, 12, 30, 0, 0, 0, 0, time.UTC)
+
+	stats, err := db.GetStatistics(before, after)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if stats.NumBltns != 5 && stats.NumEndos != 3 && stats.NumBlks != 4 {
+		t.Fatal(spw(stats))
 	}
 }
