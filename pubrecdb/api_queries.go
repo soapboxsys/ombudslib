@@ -40,6 +40,7 @@ var (
 		LEFT JOIN endorsements ON bulletins.txid = endorsements.bid
 		WHERE blocks.height <= $1 AND blocks.height > $2
 		GROUP BY bulletins.txid HAVING bulletins.txid NOT null
+		ORDER BY blocks.height DESC, bulletins.timestamp DESC
 	`
 
 	findHeightSql string = `
@@ -230,7 +231,6 @@ func (db *PublicRecord) QueryRange(start, stop *wire.ShaHash) (*ombjson.Page, er
 		return nil, err
 	}
 
-	// TODO Query for endos between heights
 	endos, err := db.GetEndosByHeight(startH, stopH)
 	if err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func (db *PublicRecord) QueryRange(start, stop *wire.ShaHash) (*ombjson.Page, er
 
 // GetTag returns a blk cursor with all of the bulletins in a tag ordered by the
 // bulletins timestamp. If no bulletins exist in the record with that tag, an empty
-// list is returned.
+// list is returned. WARNING THIS DOES NOT PROVIDE THE RIGHT ANSWER FOR TESTNET
 func (db *PublicRecord) GetTag(tag ombutil.Tag) (*ombjson.BltnPage, error) {
 	rows, err := db.selectTag.Query(string(tag), db.maxQueryLimit)
 	defer rows.Close()
@@ -265,15 +265,16 @@ func (db *PublicRecord) GetTag(tag ombutil.Tag) (*ombjson.BltnPage, error) {
 		Bulletins: bltns,
 	}
 
-	if len(bltns) < 1 {
-		page.Start = peg.GetStartBlock().Sha().String()
-		blk, err := db.GetBlockTip()
-		if err != nil {
-			return nil, err
-		}
-		page.Start = blk.Head.Hash
+	blk, err := db.GetBlockTip()
+	if err != nil {
+		return nil, err
+	}
+	page.Start = blk.Head.Hash
+
+	if len(bltns) < db.maxQueryLimit {
+		// This is ugly
+		page.Stop = peg.GetStartBlock().Sha().String()
 	} else {
-		page.Start = bltns[0].BlockRef.Hash
 		page.Stop = bltns[len(bltns)-1].BlockRef.Hash
 	}
 

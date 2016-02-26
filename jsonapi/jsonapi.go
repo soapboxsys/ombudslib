@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -256,6 +257,51 @@ func StatusHandler(db *pubrecdb.PublicRecord, start time.Time) func(http.Respons
 	}
 }
 
+// function here incase further validation is needed.
+func validateHash(s string) error {
+	if len(s) != 2*wire.HashSize {
+		return fmt.Errorf("param str bad len")
+	}
+	return nil
+}
+
+func RangeHandler(db *pubrecdb.PublicRecord) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, request *http.Request) {
+		vals := request.URL.Query()
+		start := vals.Get("start")
+		stop := vals.Get("stop")
+		var err error
+		if err = validateHash(start); err != nil {
+			http.Error(w, err.Error(), 415)
+			return
+		}
+		if err = validateHash(stop); err != nil {
+			http.Error(w, err.Error(), 415)
+			return
+		}
+
+		startH, err := wire.NewShaHashFromStr(start)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		stopH, err := wire.NewShaHashFromStr(stop)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		log.Println("hit here")
+		page, err := db.QueryRange(startH, stopH)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		writeJson(w, page)
+	}
+}
+
 type ApiFacts struct {
 	UserAgent     string `json:"user-agent",omitempty`
 	Operator      string `json:"operator",omitempty`
@@ -303,6 +349,7 @@ func Router(prefix string, db *pubrecdb.PublicRecord) *mux.Router {
 	r.HandleFunc(p+loc_suffix, NearbyLocHandler(db))
 
 	// Paginated handlers
+	r.HandleFunc(p+"range", RangeHandler(db))
 	r.HandleFunc(p+fmt.Sprintf("tag/{tag:%s}", tagre), TagHandler(db))
 	r.HandleFunc(p+"new", NewHandler(db))
 
