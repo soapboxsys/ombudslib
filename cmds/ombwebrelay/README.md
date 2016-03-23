@@ -8,11 +8,15 @@ The functionality of this api is defined in [the Ombuds spec](spec.getombuds.org
 Installing
 ----------
 
-This binary is generally used with ombfullnode.
-But, if you would like to see how it works on its own, use this command to install it.
+This binary depends on a pubrecord.db that is created and updated by ombfullnode. 
+To run this rest server you must download it, build it, and give it the path to the db.
+OR you can run the bash script!
 
 ```bash
-> go get -u -v github.com/soapboxsys/ombwebrelay
+> git clone https://github.com/soapboxsys/ombudslib
+> cd ombudslib/cmds/ombwebrelay
+> # This next step assumes you have a pubrecord.db at $DBPATH
+> ./start.sh
 ```
 
 Becoming a Relay Operator
